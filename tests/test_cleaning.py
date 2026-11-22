@@ -13,6 +13,13 @@ class CleaningTest(unittest.TestCase):
         self.assertIn('Русский текст',result.norm)
         self.assertNotIn('Р\u0093',result.norm)
 
+    @unittest.skipUnless(importlib.util.find_spec('trafilatura'),'Не установлены зависимости сбора данных')
+    def test_comment_inside_heading(self):
+        from bench.cleaning import html_article
+        source='<html><body><article><h1>Заголовок<!-- маркер --><span> текста</span></h1><p>'+('Русское предложение для проверки извлечения. '*30)+'</p></article></body></html>'
+        result,_=html_article(source)
+        self.assertIn('Заголовок текста',result.norm)
+
     def test_structure_and_raw_typography(self):
         source = '# Заголовок\n\n"Текст" - это **пример**. Ёж.\n\n* Один\n* Два\n\n> Чужая цитата\n\n```python\nx=1\n```\n'
         out = markdown(source)
