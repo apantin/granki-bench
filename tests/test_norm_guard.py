@@ -8,6 +8,13 @@ spec.loader.exec_module(guard)
 
 
 class NormGuardTest(unittest.TestCase):
+    def test_domain_limits_do_not_publish_personal_profiles(self):
+        import json
+        def check(value):return guard.norm_problems('norms/article-blog/config.json',json.dumps({'candidate_limits':value}).encode())
+        self.assertEqual(check({'example.org':600}),[])
+        for value in [{'writer.livejournal.com':600},{'example.org/@writer':600},{'example.org':True},{'example.org':0}]:
+            self.assertTrue(check(value))
+
     def test_norm_aggregates_only(self):
         self.assertEqual(guard.norm_problems('norms/article-blog/groups.csv',
             b'domain,snapshot,subgenre,documents,sha256\nexample.org,CC-MAIN-2021-04,column,10,' + b'a'*64 + b'\n'), [])

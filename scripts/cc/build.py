@@ -36,6 +36,9 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
         raise ValueError('Рабочие тексты должны находиться за пределами открытого репозитория')
     if config['clean_version']!=VERSION:
         raise ValueError('Версия очистки не совпала с рецептом')
+    limits=config.get('candidate_limits',{})
+    if set(limits)-{r['domain'] for r in domains} or any(type(v) is not int or not 1<=v<=config['max_records'] for v in limits.values()):
+        raise ValueError('Неверный доменный предел кандидатов')
     actual={name:package_version(name) for name in config['dependencies']}
     if actual!=config['dependencies']:raise ValueError('Версии зависимостей не совпадают с рецептом')
     run_dir=work/'cc-rebuild/runs'/datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
@@ -66,7 +69,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                 continue
             selected=[r for r in selected if re.search(domain['url_pattern'],r['url']) and
                       (not r.get('languages') or 'rus' in r['languages'])]
-            for record in selected[:config['candidate_limit']]:
+            for record in selected[:limits.get(domain['domain'],config['candidate_limit'])]:
                 if time.monotonic()-start>max_seconds or http.bytes>=max_bytes or counts['warc_attempts']>=config['max_records']:
                     counts['budget_stop']+=1
                     break
