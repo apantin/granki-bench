@@ -63,12 +63,17 @@ def domain_prefix(domain: str) -> str:
     return ','.join(reversed(domain.lower().split('.')))
 
 
-def blocks_for_domain(http: HTTP, snapshot: str, domain: str) -> list[tuple]:
+def blocks_for_domain(http: HTTP, snapshot: str, domain: str, *, include_subdomains: bool = True,
+                      path_prefix: str = '') -> list[tuple]:
     url = f'{BASE}cc-index/collections/{snapshot}/indexes/cluster.idx'
     with urlopen(Request(url, method='HEAD', headers={'User-Agent': USER_AGENT}), timeout=http.timeout) as r:
         size = int(r.headers['Content-Length'])
-    lower = domain_prefix(domain)
-    upper = lower + '-'
+    prefix = domain_prefix(domain)
+    lower = prefix if include_subdomains else prefix + ')'
+    upper = prefix + ('-' if include_subdomains else '*')
+    if path_prefix:
+        lower = prefix + ')' + path_prefix
+        upper = lower + '\uffff'
     # SURT домена заканчивается ')' либо ',' для поддоменов; оба меньше '-'.
     lo, hi, best = 0, size, 0
     while hi - lo > 65536:
@@ -117,8 +122,10 @@ def blocks_for_domain(http: HTTP, snapshot: str, domain: str) -> list[tuple]:
     return list(dict.fromkeys(found))
 
 
-def candidates(http: HTTP, snapshot: str, domain: str, *, seed: str, max_blocks: int = 8) -> list[dict]:
-    blocks = blocks_for_domain(http, snapshot, domain)
+def candidates(http: HTTP, snapshot: str, domain: str, *, seed: str, max_blocks: int = 8,
+               include_subdomains: bool = True, path_prefix: str = '') -> list[dict]:
+    blocks = blocks_for_domain(http, snapshot, domain, include_subdomains=include_subdomains,
+                              path_prefix=path_prefix)
     chosen = sorted(blocks, key=lambda b: hashlib.sha256(f'{seed}\0{b}'.encode()).digest())[:max_blocks]
     prefix = domain_prefix(domain)
     result = []
@@ -133,6 +140,14 @@ def candidates(http: HTTP, snapshot: str, domain: str, *, seed: str, max_blocks:
             if not (key.startswith(prefix + ')') or key.startswith(prefix + ',')):
                 continue
             row = json.loads(cols[2])
+            if path_prefix:
+                from urllib.parse import urlsplit
+                if not urlsplit(row['url']).path.startswith(path_prefix):
+                    continue
+            if not include_subdomains:
+                from urllib.parse import urlsplit
+                if (urlsplit(row['url']).hostname or '').removeprefix('www.') != domain.removeprefix('www.'):
+                    continue
             if row.get('status') == '200' and row.get('mime', '').startswith('text/html'):
                 row['snapshot'] = snapshot
                 row['timestamp'] = cols[1].decode()
