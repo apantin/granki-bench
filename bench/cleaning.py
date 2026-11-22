@@ -70,6 +70,20 @@ def html_article(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
                 content=str(decoded)
     tree = lhtml.fromstring(content)
     metadata = extract_metadata(tree, default_url=url)
+    author=getattr(metadata,'author',None)
+    author_method='metadata'
+    if not author:
+        nodes=tree.xpath('//*[contains(concat(" ",normalize-space(@class)," ")," bdaia-post-author-name ")]//a')
+        if nodes:
+            author=' '.join(nodes[0].text_content().split())
+            author_method='bdaia-byline'
+    if not author and 'rsdn.org/' in url:
+        body=tree.xpath('//body')
+        header=(body[0].text_content() if body else tree.text_content())[:10000]
+        match=re.search(r'(?im)авторы?\s*:\s*([А-ЯЁ][а-яё]+(?:[ \t]+[А-ЯЁ][а-яё]+){1,2})',header)
+        if match:
+            author=match.group(1).strip()
+            author_method='rsdn-author-header'
     count = 0
     for node in tree.xpath('//blockquote|//pre|//script|//style|//nav|//footer|//figcaption|//figure'):
         if node.tag == 'pre':
@@ -84,6 +98,7 @@ def html_article(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
                         include_formatting=True, favor_precision=True) or ''
     clean = markdown(extracted)
     meta = {key: getattr(metadata, key, None) for key in ('title', 'author', 'date', 'sitename')}
+    meta.update(author=author,author_method=author_method if author else 'domain-fallback')
     return CleanText(clean.raw, clean.norm, count + clean.code_blocks), meta
 
 
