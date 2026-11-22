@@ -31,6 +31,7 @@ def canonical(url):
 
 
 def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_bytes:int=2*1024**3):
+    work=work.resolve()
     if work.resolve().is_relative_to(Path(__file__).resolve().parents[2]):
         raise ValueError('Рабочие тексты должны находиться за пределами открытого репозитория')
     if config['clean_version']!=VERSION:
@@ -51,8 +52,13 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
         for snapshot in sorted(domain['snapshots'].split(';')):
             if counts['warc_attempts']>=config['max_records']:
                 break
-            selected=candidates(http,snapshot,domain['domain'],seed=config['seed'],
-                                max_blocks=config['max_blocks'],path_prefix=domain.get('path_prefix',''))
+            try:
+                selected=candidates(http,snapshot,domain['domain'],seed=config['seed'],
+                                    max_blocks=config['max_blocks'],path_prefix=domain.get('path_prefix',''))
+            except Exception as exc:
+                counts['index_error:'+type(exc).__name__]+=1
+                print(json.dumps(dict(counts,domain=domain['domain'],snapshot=snapshot)),flush=True)
+                continue
             selected=[r for r in selected if re.search(domain['url_pattern'],r['url']) and
                       (not r.get('languages') or 'rus' in r['languages'])]
             for record in selected[:config['candidate_limit']]:
@@ -80,7 +86,9 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                     docs.append(dict(id=rid,url=url,snapshot=snapshot,domain=domain['domain'],
                                      subgenre=domain['subgenre'],author=author_identity(record['url'],metadata),
                                      sha256=hashlib.sha256(path.read_bytes()).hexdigest(),text=clean.norm,
-                                     path=str(path),raw_path=str(raw_path)))
+                                     raw_sha256=hashlib.sha256(raw_path.read_bytes()).hexdigest(),
+                                     path=str(path),raw_path=str(raw_path),record=record,
+                                     warc_sha256=hashlib.sha256(compressed).hexdigest(),author_method=metadata.get('author_method')))
                     counts['accepted']+=1
                 except Exception as exc:counts['error:'+type(exc).__name__]+=1
             print(json.dumps(dict(counts,domain=domain['domain'],snapshot=snapshot,bytes=http.bytes)),flush=True)
@@ -92,8 +100,9 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     output.mkdir(parents=True,exist_ok=True)
     # Только локальный промежуточный реестр; не публикуется вместе с агрегатами.
     (output/'selected.json').write_text(json.dumps([{k:v for k,v in d.items() if k!='text'} for d in selected],ensure_ascii=False,indent=2)+'\n')
+    complete=len(selected)==config['target'] and not counts['budget_stop'] and not any(k.startswith('index_error:') for k in counts)
     (output/'summary.json').write_text(json.dumps(dict(counts,unique=len(unique),selected=len(selected),duplicates=len(duplicates),
-                                                    complete=len(selected)==config['target']),ensure_ascii=False,indent=2)+'\n')
+                                                    target_met=len(selected)==config['target'],complete=complete),ensure_ascii=False,indent=2)+'\n')
     import shutil
     shutil.copyfile(output/'selected.json',run_dir/'selected.json')
     shutil.copyfile(output/'summary.json',run_dir/'summary.json')
