@@ -71,7 +71,8 @@ def html_article(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
     tree = lhtml.fromstring(content)
     # Trafilatura 2.0 пытается менять tag комментария внутри заголовка и падает.
     for comment in tree.xpath('//comment()'):
-        comment.drop_tree()
+        if comment.getparent() is not None:
+            comment.drop_tree()
     metadata = extract_metadata(tree, default_url=url)
     author=getattr(metadata,'author',None)
     author_method='metadata'

@@ -19,6 +19,8 @@ class CleaningTest(unittest.TestCase):
         source='<html><body><article><h1>Заголовок<!-- маркер --><span> текста</span></h1><p>'+('Русское предложение для проверки извлечения. '*30)+'</p></article></body></html>'
         result,_=html_article(source)
         self.assertIn('Заголовок текста',result.norm)
+        result,_=html_article('<!-- внешний комментарий -->'+source)
+        self.assertIn('Русское предложение',result.norm)
 
     def test_structure_and_raw_typography(self):
         source = '# Заголовок\n\n"Текст" - это **пример**. Ёж.\n\n* Один\n* Два\n\n> Чужая цитата\n\n```python\nx=1\n```\n'
