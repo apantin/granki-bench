@@ -5,7 +5,7 @@ import re
 import unicodedata
 from dataclasses import dataclass
 
-VERSION = 'clean-v2'
+VERSION = 'clean-v3'
 WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё]+(?:[-’'][A-Za-zА-Яа-яЁё]+)*|\d+(?:[.,]\d+)?")
 
 
@@ -55,6 +55,19 @@ def html_article(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
     from lxml import html as lhtml
     from trafilatura import extract
     from trafilatura.metadata import extract_metadata
+    if isinstance(content,bytes):
+        try:
+            content=content.decode('utf-8-sig')
+        except UnicodeDecodeError:
+            # HTML5 charset может оказаться дальше зоны автодетектора libxml2.
+            charset=re.search(br'charset\s*=\s*[\"\']?([A-Za-z0-9_-]+)',content[:16384],re.I)
+            if charset:
+                content=content.decode(charset.group(1).decode('ascii'),errors='replace')
+            else:
+                from charset_normalizer import from_bytes
+                decoded=from_bytes(content).best()
+                if decoded is None:raise ValueError('Не удалось определить кодировку HTML')
+                content=str(decoded)
     tree = lhtml.fromstring(content)
     metadata = extract_metadata(tree, default_url=url)
     count = 0
