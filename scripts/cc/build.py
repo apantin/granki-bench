@@ -12,6 +12,9 @@ import json
 import re
 import sys
 import time
+import subprocess
+from datetime import datetime,timezone
+from importlib.metadata import version as package_version
 from collections import Counter
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
@@ -32,6 +35,13 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
         raise ValueError('Рабочие тексты должны находиться за пределами открытого репозитория')
     if config['clean_version']!=VERSION:
         raise ValueError('Версия очистки не совпала с рецептом')
+    actual={name:package_version(name) for name in config['dependencies']}
+    if actual!=config['dependencies']:raise ValueError('Версии зависимостей не совпадают с рецептом')
+    run_dir=work/'cc-rebuild/runs'/datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
+    run_dir.mkdir(parents=True,exist_ok=False)
+    commit=subprocess.run(['git','-C',str(Path(__file__).resolve().parents[2]),'rev-parse','HEAD'],capture_output=True,text=True,check=True).stdout.strip()
+    (run_dir/'run.json').write_text(json.dumps(dict(config=config,domains=domains,dependencies=actual,bench_commit=commit,
+                                                  max_seconds=max_seconds,max_bytes=max_bytes),ensure_ascii=False,indent=2)+'\n')
     http=HTTP(work/'raw/cc/http-cache',delay=.3,timeout=20)
     docs=[]
     counts=Counter()
@@ -84,6 +94,9 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     (output/'selected.json').write_text(json.dumps([{k:v for k,v in d.items() if k!='text'} for d in selected],ensure_ascii=False,indent=2)+'\n')
     (output/'summary.json').write_text(json.dumps(dict(counts,unique=len(unique),selected=len(selected),duplicates=len(duplicates),
                                                     complete=len(selected)==config['target']),ensure_ascii=False,indent=2)+'\n')
+    import shutil
+    shutil.copyfile(output/'selected.json',run_dir/'selected.json')
+    shutil.copyfile(output/'summary.json',run_dir/'summary.json')
     return groups
 
 

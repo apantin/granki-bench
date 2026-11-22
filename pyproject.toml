@@ -8,7 +8,13 @@ requires-python = ">=3.10"
 dependencies = []
 
 [project.optional-dependencies]
-data = ["trafilatura==2.0.0", "warcio==1.7.5", "datasketch==1.8.0"]
+data = [
+  "trafilatura==2.0.0", "warcio==1.7.5", "datasketch==1.8.0",
+  "lxml==6.1.3", "charset-normalizer==3.5.2", "courlan==1.5.0",
+  "htmldate==1.11.0", "justext==3.0.2", "dateparser==1.5.1",
+  "regex==2026.11.19", "numpy==2.5.5", "scipy==1.18.1",
+  "lxml-html-clean==0.4.6", "python-dateutil==4.0.0",
+]
 
 [project.scripts]
 granki-bench = "bench.cli:main"
