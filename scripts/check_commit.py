@@ -2,6 +2,7 @@
 """Проверка перед коммитом: в открытый репозиторий не уходит лишнее.
 
 - файлы только в разрешённых папках;
+- файлы данных — только в anchors/, в results/ — только результаты bench;
 - в добавленном тексте нет локальных путей и адресов почты;
 - файлы не больше 5 МБ;
 - наборы эталонов сходятся со своими манифестами;
@@ -11,6 +12,7 @@
 """
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
@@ -22,6 +24,9 @@ sys.path.insert(0, str(ROOT))
 ALLOWED_DIRS = {'bench', 'protocols', 'anchors', 'results', 'scripts', 'tests', 'docs', 'rules', '.githooks'}
 ALLOWED_FILES = {'README.md', 'LICENSE', 'NOTICE.md', '.gitignore', 'pyproject.toml'}
 MAX_BYTES = 5 * 1024 * 1024
+# Файлы данных — только в наборах эталонов (anchors/), где их сверяет манифест.
+DATA_EXT = {'.csv', '.tsv', '.jsonl', '.txt', '.parquet', '.xlsx', '.xls', '.xml', '.html', '.epub', '.fb2',
+            '.pdf', '.docx', '.doc', '.rtf', '.zip', '.gz', '.xz', '.bz2', '.tar', '.7z'}
 PRIVATE = re.compile(r'/home/[a-z]|/Users/[A-Za-z]|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.(?:com|ru|me|org|net)\b')
 
 
@@ -35,6 +40,15 @@ def staged_blob(path: str) -> bytes:
     return subprocess.run(['git', '-C', str(ROOT), 'show', f':{path}'], capture_output=True, check=True).stdout
 
 
+def is_result(path: str, data: bytes) -> bool:
+    if not path.endswith('.json'):
+        return False
+    try:
+        return json.loads(data).get('kind') in {'pairwise', 'absolute'}
+    except (ValueError, AttributeError):
+        return False
+
+
 def main() -> int:
     problems = []
     for path in staged():
@@ -43,6 +57,11 @@ def main() -> int:
             problems.append(f'{path}: вне разрешённых путей')
             continue
         data = staged_blob(path)
+        suffix = Path(path).suffix.lower()
+        if suffix in DATA_EXT and top != 'anchors' and not (top == 'protocols' and suffix == '.txt'):  # промпты — .txt
+            problems.append(f'{path}: файл данных вне anchors/ — данные только в наборах эталонов с манифестом')
+        if top == 'results' and Path(path).name != 'README.md' and not is_result(path, data):
+            problems.append(f'{path}: в results/ — только JSON результатов bench (поле kind: pairwise или absolute)')
         if len(data) > MAX_BYTES:
             problems.append(f'{path}: больше 5 МБ')
         if path != 'scripts/check_commit.py':
