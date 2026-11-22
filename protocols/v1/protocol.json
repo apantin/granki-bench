@@ -1,0 +1,85 @@
+{
+  "version": "v1",
+  "status": "frozen",
+  "frozen": "2026-11-22",
+  "origin": "Протокол пилота Granki (2026-11-21 — 22), перенесён как есть, вместе с недостатками. См. README.md рядом.",
+  "pairwise": {
+    "prompt": "pairwise.prompt.txt",
+    "format": "python-str-format",
+    "fields": [
+      "reader",
+      "posts",
+      "t1",
+      "t2"
+    ],
+    "criteria": [
+      "human",
+      "voice",
+      "honesty",
+      "reader",
+      "overall"
+    ],
+    "orders": [
+      "ab",
+      "ba"
+    ],
+    "answers": {
+      "1": "first",
+      "2": "second",
+      "=": "tie"
+    },
+    "score": "по каждому критерию: (голоса за A − голоса за B) / число голосов, округление до 0,01; ответ не из «1», «2», «=» считается ничьей",
+    "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f"
+  },
+  "absolute": {
+    "prompt": "absolute.prompt.txt",
+    "format": "python-str-format",
+    "fields": [
+      "reader",
+      "posts",
+      "claims",
+      "article"
+    ],
+    "criteria": [
+      "human",
+      "voice",
+      "clarity",
+      "evidence",
+      "structure"
+    ],
+    "scale": "1–10",
+    "aggregate": "среднее по судьям, ответившим числом, округление до 0,01",
+    "prompt_sha256": "ce43b72fb33644ed2253f2e840b4c1a0d5278f9f52a3b21d3f66987e50a8308b"
+  },
+  "judges": [
+    "opus",
+    "sonnet",
+    "haiku",
+    "codex"
+  ],
+  "runner": {
+    "claude": [
+      "claude",
+      "-p",
+      "--model",
+      "{alias}",
+      "--tools",
+      "",
+      "--output-format",
+      "json"
+    ],
+    "codex": [
+      "codex",
+      "exec",
+      "--skip-git-repo-check",
+      "-s",
+      "read-only",
+      "-"
+    ],
+    "prompt_via": "stdin",
+    "cwd": "пустой временный каталог (в пилоте — /tmp)",
+    "attempts": 2,
+    "parse": "фрагмент ответа от первой «{» до последней «}» как JSON; если не разбирается — ошибка вызова (как в пилоте)",
+    "timeout_s": 1200
+  }
+}

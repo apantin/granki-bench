@@ -1,0 +1,14 @@
+[project]
+name = "granki-bench"
+version = "0.0.1"
+description = "Оценка русского текста по зафиксированному протоколу: стиль и качество"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+granki-bench = "bench.cli:main"
+
+[tool.setuptools]
+packages = ["bench"]

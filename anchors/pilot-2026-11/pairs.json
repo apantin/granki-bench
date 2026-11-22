@@ -1,0 +1,188 @@
+{
+ "bare-vs-statya-bike": {
+  "a": "texts/bare-bike.md",
+  "b": "texts/statya-bike.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-bare-vs-statya-bike.json"
+ },
+ "opus2-vs-orig": {
+  "a": "texts/b-opus2-s012.md",
+  "b": "texts/b-s012.md",
+  "topic": "ci",
+  "result": "results/v1-pilot-2026-11/pair-opus2-vs-orig.json"
+ },
+ "opus2-vs-sonnet": {
+  "a": "texts/b-opus2-s012.md",
+  "b": "texts/b-sonnet-s012.md",
+  "topic": "ci",
+  "result": "results/v1-pilot-2026-11/pair-opus2-vs-sonnet.json"
+ },
+ "A01-vs-bare": {
+  "a": "texts/A-01-days.md",
+  "b": "texts/bare-bike01.md",
+  "topic": "bike01",
+  "result": "results/v1-pilot-2026-11/pair-A01-vs-bare.json"
+ },
+ "A02-vs-bare": {
+  "a": "texts/A-02-studs.md",
+  "b": "texts/bare-bike.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-A02-vs-bare.json"
+ },
+ "A02-vs-statya": {
+  "a": "texts/A-02-studs.md",
+  "b": "texts/statya-bike.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-A02-vs-statya.json"
+ },
+ "B-vs-bare": {
+  "a": "texts/B-01-ci.md",
+  "b": "texts/bare-ci.md",
+  "topic": "ci",
+  "result": "results/v1-pilot-2026-11/pair-B-vs-bare.json"
+ },
+ "B-vs-statya": {
+  "a": "texts/B-01-ci.md",
+  "b": "texts/statya-ci.md",
+  "topic": "ci",
+  "result": "results/v1-pilot-2026-11/pair-B-vs-statya.json"
+ },
+ "C-vs-bare": {
+  "a": "texts/C-01-solar.md",
+  "b": "texts/bare-solar.md",
+  "topic": "solar",
+  "result": "results/v1-pilot-2026-11/pair-C-vs-bare.json"
+ },
+ "C-vs-statya": {
+  "a": "texts/C-01-solar.md",
+  "b": "texts/statya-solar.md",
+  "topic": "solar",
+  "result": "results/v1-pilot-2026-11/pair-C-vs-statya.json"
+ },
+ "E2final-vs-A02-rerun": {
+  "a": "texts/E2-02-final.md",
+  "b": "texts/A-02-studs.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E2final-vs-A02-rerun.json"
+ },
+ "E2final-vs-A02": {
+  "a": "texts/E2-02-final.md",
+  "b": "texts/A-02-studs.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E2final-vs-A02.json"
+ },
+ "E2final-vs-bare": {
+  "a": "texts/E2-02-final.md",
+  "b": "texts/bare-bike.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E2final-vs-bare.json"
+ },
+ "E2sec-vs-A02": {
+  "a": "texts/E2-02-sections.md",
+  "b": "texts/A-02-studs.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E2sec-vs-A02.json"
+ },
+ "E2sec-vs-bare": {
+  "a": "texts/E2-02-sections.md",
+  "b": "texts/bare-bike.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E2sec-vs-bare.json"
+ },
+ "E3-vs-B1": {
+  "a": "texts/B-e3-v2.md",
+  "b": "texts/B-01-ci.md",
+  "topic": "ci",
+  "result": "results/v1-pilot-2026-11/pair-E3-vs-B1.json"
+ },
+ "E3-vs-bare": {
+  "a": "texts/B-e3-v2.md",
+  "b": "texts/bare-ci.md",
+  "topic": "ci",
+  "result": "results/v1-pilot-2026-11/pair-E3-vs-bare.json"
+ },
+ "E4-final-vs-draft": {
+  "a": "texts/E4-0102-final.md",
+  "b": "texts/E4-0102-draft.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E4-final-vs-draft.json"
+ },
+ "E4-vs-A02": {
+  "a": "texts/E4-02.md",
+  "b": "texts/A-02-studs.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E4-vs-A02.json"
+ },
+ "E4-vs-E2": {
+  "a": "texts/E4-02.md",
+  "b": "texts/E2-02-final.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E4-vs-E2.json"
+ },
+ "E4-vs-E4s": {
+  "a": "texts/E4-02.md",
+  "b": "texts/E4s-02.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E4-vs-E4s.json"
+ },
+ "E4-vs-bare": {
+  "a": "texts/E4-02.md",
+  "b": "texts/bare-bike.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E4-vs-bare.json"
+ },
+ "E4-vs-statya": {
+  "a": "texts/E4-02.md",
+  "b": "texts/statya-bike.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E4-vs-statya.json"
+ },
+ "E4s-vs-E2": {
+  "a": "texts/E4s-02.md",
+  "b": "texts/E2-02-final.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E4s-vs-E2.json"
+ },
+ "E4s-vs-bare": {
+  "a": "texts/E4s-02.md",
+  "b": "texts/bare-bike.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E4s-vs-bare.json"
+ },
+ "E5-vs-E4": {
+  "a": "texts/E5-02.md",
+  "b": "texts/E4-02.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E5-vs-E4.json"
+ },
+ "E5-vs-bare": {
+  "a": "texts/E5-02.md",
+  "b": "texts/bare-bike.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E5-vs-bare.json"
+ },
+ "E6-vs-E4": {
+  "a": "texts/E6-02-holistic.md",
+  "b": "texts/E4-02.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E6-vs-E4.json"
+ },
+ "E6-vs-E4draft": {
+  "a": "texts/E6-02-holistic.md",
+  "b": "texts/E4-0102-draft.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E6-vs-E4draft.json"
+ },
+ "E6-vs-bare": {
+  "a": "texts/E6-02-holistic.md",
+  "b": "texts/bare-bike.md",
+  "topic": "bike",
+  "result": "results/v1-pilot-2026-11/pair-E6-vs-bare.json"
+ },
+ "catchphrase": {
+  "a": "texts/A-01-days-catchphrase.md",
+  "b": "texts/A-01-days.md",
+  "topic": "bike01",
+  "result": "results/v1-pilot-2026-11/pair-catchphrase.json"
+ }
+}

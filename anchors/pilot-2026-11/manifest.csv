@@ -1,0 +1,30 @@
+path,sha256,words,role,topic,about
+data/builds.csv,6c779f1353bef5813841b67ddabe43cc0a9bfa43d161b4bd32a0034bea226273,2897,данные (вымышленные),ci,
+data/trips.csv,3b823bee68c71c201547535928688bfa65b0bae42f69835a2a628675ef675ece,674,данные (вымышленные),bike,
+posts/bike.md,4a5019c22ff25f7cbba7749ef278805ce305b2e02afc6572d5fb103fd10259c1,173,посты-эталон голоса (написаны моделью),bike,
+posts/ci.md,668121cd12eb62dc614c128cbcfecfaf71e473ea70b2446f1e6ee77eb4fae8f8,199,посты-эталон голоса (написаны моделью),ci,
+posts/solar.md,6a6970950bdb3a4e30bfb1a30e1e63b2d164293cefbbc6fff7d4f00a342d1046,219,посты-эталон голоса (написаны моделью),solar,
+texts/A-01-days-catchphrase.md,b2ec74073580dfb194e465fba78176b566989dd4c3aeed051b6e94af268dd18f,743,текст,bike01,То же с приклеенной фразой из постов автора (проверка перекоса судей)
+texts/A-01-days.md,4a9568b4a2b0eb946131285c59c8519b27302707b6c2a4111f300b8cbf9d1683,736,текст,bike01,"Статья 1 пилота A, исходный Granki"
+texts/A-02-studs.md,1b804f205dc439a77f45d4eec43cfdae190b8b348c2cd95483c664f60e8e92bb,914,текст,bike,"Статья 2 пилота A, исходный Granki"
+texts/B-01-ci.md,a5374fa08f11b8c74f6c73637045163ec9f43295c12327c3565d4a487adf61fc,799,текст,ci,"Пилот B, версия 1, исходный Granki"
+texts/B-e3-v2.md,e0af32c0a34b293a20c8cfe30355321eb493fe7d72145b2da8992a23467e3c7a,821,текст,ci,E3: версия 2 с разделом «Чего мы не знаем»
+texts/C-01-solar.md,c3d491fc550f8270c223d04573c95c0f63647f04cccaddcdb654d9d3ead128f9,1641,текст,solar,"Пилот C, контрольная тема"
+texts/E2-02-final.md,a0b03403ec2a7a22b4bec60c2e0b8a980bb9dfeee711773f3b07ed83453a5f87,811,текст,bike,"E2: статья 2 заново, правки письма, после ревью"
+texts/E2-02-sections.md,9f04b61f3b6384eb4cef25f8bb3cbdc67a200c6eb7d590b910632024c5823382,788,текст,bike,"E2: та же статья, разделы до ревью статьи"
+texts/E4-0102-draft.md,02f89687c6ba218a52e10418e13fd22b71fd0bea9e24a97173f6ba5e40f0100d,476,текст,bike,"E4: разделы «Падения» и «Время», черновик"
+texts/E4-0102-final.md,1e35db99f94a8dd180c6897cbec6a0be37c66b3b2ed209a62cba232fc31c0502,505,текст,bike,E4: те же разделы после ревью
+texts/E4-02.md,5f2ce8dabf21f571fe87499f041f9aa18b4e9e215058580f52b0feaf9807b525,811,текст,bike,"E4: все правки пилота, агент Opus"
+texts/E4s-02.md,f5ac7d876135d76901d85e41a1d14c790b9c33af20d9c7017259e5a1c834baac,949,текст,bike,"E4-Sonnet: все правки пилота, агент Sonnet"
+texts/E5-02.md,0f55e5d073f5d85f038fd3868e97f2904572c3863ca3e2a08b47653c47000c26,845,текст,bike,E5: E4 + проход голоса (итоговая версия)
+texts/E6-02-holistic.md,8bbe7abe0a291ed059e743ff34a0bb40dc97b1358fce5523bd2852c0920b4f99,768,текст,bike,"E6: статья целиком одним агентом, без ревью"
+texts/b-opus2-s012.md,19d036c652b9c48460866c4f52373b08f5eb98590446b46f34f570434fa8ed3c,419,текст,ci,"E1: разделы 00–02, правки пилота, Opus"
+texts/b-s012.md,6788929d02567241fb3897b7257bb0ca837adcf015fc9504f06f7e51c938fa43,456,текст,ci,"E1: разделы 00–02, исходный Granki, Opus"
+texts/b-sonnet-s012.md,f6a020c62e269125717077f1fab81615cc3634013c6fed9952fe1b856abe9278,532,текст,ci,"E1: разделы 00–02, правки пилота, Sonnet"
+texts/bare-bike.md,7b596d174652e77a3fe98668e250bc1e4724dcc8beeabdcb445308fc0d491279,840,текст,bike,"База: голая модель (Opus) по брифу автора, статья 2"
+texts/bare-bike01.md,52f70dec2cf0283c2d3a4cc964ee8773070dd0562705a4306bfbfbd8d56c75ce,732,текст,bike01,"База: голая модель по брифу, статья 1"
+texts/bare-ci.md,497f2b0b46f6e70c994e117aa0eb73ca4b3c272e3b83c863382f34f957cd45a2,729,текст,ci,"База: голая модель, CI"
+texts/bare-solar.md,4e36eebdb6a11c608e5c7d634d73974311c44c8c66313310821980213c66443d,968,текст,solar,"База: голая модель, солнечная станция"
+texts/statya-bike.md,a8365b54f3f6368f3b5d2512a19879d141e441896f8ffe971ee501a84af95155,851,текст,bike,"База: скилл statya по брифу, статья 2"
+texts/statya-ci.md,93dc9105ec26e8f341f1e82097bc611fe8af96725283285193042c1441b056c2,697,текст,ci,"База: скилл statya, CI"
+texts/statya-solar.md,ecdda28850df422e947b09d4ade096d9458d564c98ef3d2567e8e5a790ce2866,949,текст,solar,"База: скилл statya, солнечная станция"
