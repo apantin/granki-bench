@@ -5,7 +5,7 @@ import re
 import unicodedata
 from dataclasses import dataclass
 
-VERSION = 'clean-v1'
+VERSION = 'clean-v2'
 WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё]+(?:[-’'][A-Za-zА-Яа-яЁё]+)*|\d+(?:[.,]\d+)?")
 
 
@@ -23,8 +23,8 @@ def words(text: str) -> list[str]:
 def typography(text: str) -> str:
     text = unicodedata.normalize('NFC', text).replace('\u00a0', ' ').replace('\u202f', ' ')
     text = re.sub(r'[ \t]+', ' ', text)
-    text = re.sub(r'(?<=\s)[–-](?=\s)', '—', text)
-    text = re.sub(r'^[–-] ', '— ', text, flags=re.M)
+    text = re.sub(r'(?<=[ \t])[–-](?=[ \t])', '—', text)
+    text = re.sub(r'^– ', '— ', text, flags=re.M)
     text = re.sub(r'[“„«]([^”»\n]+)[”»]', r'«\1»', text)
     text = re.sub(r'"([^"\n]+)"', r'«\1»', text)
     return text

@@ -11,6 +11,7 @@ class CleaningTest(unittest.TestCase):
         self.assertIn('Ёж', out.norm)
         self.assertIn('# Заголовок', out.raw)
         self.assertIn('- Один', out.raw)
+        self.assertIn('- Один', out.norm)
         self.assertNotIn('Чужая', out.raw)
         self.assertNotIn('x=1', out.raw)
         self.assertIn('[КОД]', out.raw)
