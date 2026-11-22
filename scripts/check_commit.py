@@ -84,7 +84,7 @@ def norm_problems(path: str, data: bytes) -> list[str]:
             return ['неверный JSON конфигурации']
         allowed = {'version', 'seed', 'snapshots', 'target', 'min_words', 'max_words', 'min_cyrillic',
                    'domain_cap', 'author_cap', 'dedup_threshold', 'clean_version', 'max_records',
-                   'index_method', 'candidate_limit', 'max_blocks', 'subgenres', 'dependencies'}
+                   'index_method', 'candidate_limit', 'candidate_limits', 'max_blocks', 'subgenres', 'dependencies'}
         if not isinstance(config, dict) or set(config) - allowed:
             return ['недопустимые поля конфигурации нормы']
     if re.search(r'"(?:salt|split|split_key|author_id|source_url|validation_exclusion)"\s*:', data.decode()):
