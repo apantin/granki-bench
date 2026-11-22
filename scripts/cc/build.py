@@ -100,7 +100,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     output.mkdir(parents=True,exist_ok=True)
     # Только локальный промежуточный реестр; не публикуется вместе с агрегатами.
     (output/'selected.json').write_text(json.dumps([{k:v for k,v in d.items() if k!='text'} for d in selected],ensure_ascii=False,indent=2)+'\n')
-    complete=len(selected)==config['target'] and not counts['budget_stop'] and not any(k.startswith('index_error:') for k in counts)
+    complete=len(selected)==config['target'] and not counts['budget_stop'] and not any(k.startswith(('index_error:','error:')) for k in counts)
     (output/'summary.json').write_text(json.dumps(dict(counts,unique=len(unique),selected=len(selected),duplicates=len(duplicates),
                                                     target_met=len(selected)==config['target'],complete=complete),ensure_ascii=False,indent=2)+'\n')
     import shutil
