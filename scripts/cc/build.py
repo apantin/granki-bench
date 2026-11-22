@@ -49,7 +49,11 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     start=time.monotonic()
     considered=set()
     for domain in domains:
+        if counts['budget_stop']:break
         for snapshot in sorted(domain['snapshots'].split(';')):
+            if time.monotonic()-start>max_seconds or http.bytes>=max_bytes:
+                counts['budget_stop']+=1
+                break
             if counts['warc_attempts']>=config['max_records']:
                 break
             try:
@@ -102,6 +106,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     (output/'selected.json').write_text(json.dumps([{k:v for k,v in d.items() if k!='text'} for d in selected],ensure_ascii=False,indent=2)+'\n')
     complete=len(selected)==config['target'] and not counts['budget_stop'] and not any(k.startswith(('index_error:','error:')) for k in counts)
     (output/'summary.json').write_text(json.dumps(dict(counts,unique=len(unique),selected=len(selected),duplicates=len(duplicates),
+                                                    elapsed_seconds=round(time.monotonic()-start,2),transferred_bytes=http.bytes,requests=http.requests,
                                                     target_met=len(selected)==config['target'],complete=complete),ensure_ascii=False,indent=2)+'\n')
     import shutil
     shutil.copyfile(output/'selected.json',run_dir/'selected.json')
