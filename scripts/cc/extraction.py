@@ -4,6 +4,13 @@ import re
 from urllib.parse import urlsplit
 
 
+def metadata_exclusion(author: str) -> str:
+    """Явная торговая спам-подпись вместо авторства; содержание статьи не фильтруется."""
+    if re.search(r'(?:купить|закладк).*(?:марихуан|шишки|бошки)|(?:марихуан|шишки|бошки).*(?:купить|закладк)',author,re.I):
+        return 'spam-author-signature'
+    return ''
+
+
 def author_identity(url: str, metadata: dict) -> str:
     host = urlsplit(url).hostname or ''
     if host.endswith(('.livejournal.com', '.blogspot.com', '.wordpress.com')):

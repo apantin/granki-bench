@@ -22,7 +22,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
 from bench.cleaning import VERSION,html_article,text_features
 from bench.corpus_selection import deduplicate,quota,group_hashes
 from index import BASE,HTTP,candidates
-from extraction import author_identity,response_body
+from extraction import author_identity,metadata_exclusion,response_body
 
 
 def canonical(url):
@@ -77,6 +77,9 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                     compressed=http.get(BASE+record['filename'],int(record['offset']),int(record['length']))
                     payload=response_body(compressed)
                     clean,metadata=html_article(payload,record['url'])
+                    author=author_identity(record['url'],metadata)
+                    if metadata_exclusion(author):
+                        counts['metadata_spam']+=1;continue
                     features=text_features(clean.norm)
                     if not config['min_words']<=features['words']<=config['max_words'] or features['cyrillic']<config['min_cyrillic']:
                         counts['filter']+=1;continue
@@ -88,7 +91,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                     path,raw_path=folder/(rid+'.md'),folder/(rid+'.raw.md')
                     path.write_text(clean.norm);raw_path.write_text(clean.raw)
                     docs.append(dict(id=rid,url=url,snapshot=snapshot,domain=domain['domain'],
-                                     subgenre=domain['subgenre'],author=author_identity(record['url'],metadata),
+                                     subgenre=domain['subgenre'],author=author,
                                      sha256=hashlib.sha256(path.read_bytes()).hexdigest(),text=clean.norm,
                                      raw_sha256=hashlib.sha256(raw_path.read_bytes()).hexdigest(),
                                      path=str(path),raw_path=str(raw_path),record=record,
