@@ -1,5 +1,6 @@
 """Общие правила авторства и чтения одной записи WARC; без приватного реестра."""
 import io
+import re
 from urllib.parse import urlsplit
 
 
@@ -13,7 +14,7 @@ def author_identity(url: str, metadata: dict) -> str:
     if host.endswith('liveinternet.ru') and path.startswith('/users/'):
         return host+'/users/'+path.split('/')[2]
     author = (metadata.get('author') or '').strip().casefold()
-    if author and author not in {'редакция', 'команда', 'admin', 'administrator'}:
+    if author and author not in {'admin', 'administrator'} and not re.match(r'^(?:редакция|команда)\b',author):
         return author
     return 'domain:' + host.removeprefix('www.')
 
