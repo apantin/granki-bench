@@ -45,6 +45,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                                                   max_seconds=max_seconds,max_bytes=max_bytes),ensure_ascii=False,indent=2)+'\n')
     http=HTTP(work/'raw/cc/http-cache',delay=.3,timeout=20)
     docs=[]
+    failures=[]
     counts=Counter()
     start=time.monotonic()
     considered=set()
@@ -97,7 +98,10 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                                      path=str(path),raw_path=str(raw_path),record=record,
                                      warc_sha256=hashlib.sha256(compressed).hexdigest(),author_method=metadata.get('author_method')))
                     counts['accepted']+=1
-                except Exception as exc:counts['error:'+type(exc).__name__]+=1
+                except Exception as exc:
+                    counts['error:'+type(exc).__name__]+=1
+                    failures.append(dict(domain=domain['domain'],snapshot=snapshot,record=record,
+                                         error=type(exc).__name__,http_status=getattr(exc,'code',None)))
             print(json.dumps(dict(counts,domain=domain['domain'],snapshot=snapshot,bytes=http.bytes)),flush=True)
     unique,duplicates=deduplicate(docs,config['dedup_threshold'])
     selected=quota(unique,seed=config['seed'],target=config['target'],subgenres=config['subgenres'],
@@ -107,6 +111,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     output.mkdir(parents=True,exist_ok=True)
     # Только локальный промежуточный реестр; не публикуется вместе с агрегатами.
     (output/'selected.json').write_text(json.dumps([{k:v for k,v in d.items() if k!='text'} for d in selected],ensure_ascii=False,indent=2)+'\n')
+    (output/'failures.json').write_text(json.dumps(failures,ensure_ascii=False,indent=2)+'\n')
     complete=len(selected)==config['target'] and not counts['budget_stop'] and not any(k.startswith(('index_error:','error:')) for k in counts)
     (output/'summary.json').write_text(json.dumps(dict(counts,unique=len(unique),selected=len(selected),duplicates=len(duplicates),
                                                     elapsed_seconds=round(time.monotonic()-start,2),transferred_bytes=http.bytes,requests=http.requests,
@@ -114,6 +119,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     import shutil
     shutil.copyfile(output/'selected.json',run_dir/'selected.json')
     shutil.copyfile(output/'summary.json',run_dir/'summary.json')
+    shutil.copyfile(output/'failures.json',run_dir/'failures.json')
     return groups
 
 
