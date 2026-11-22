@@ -11,6 +11,7 @@ import gzip
 import hashlib
 import json
 import time
+import tempfile
 from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
@@ -48,7 +49,10 @@ class HTTP:
                     if start is not None and len(data) != length:
                         raise ValueError('Длина диапазона не совпала')
                 self.bytes += len(data)
-                target.write_bytes(data)
+                with tempfile.NamedTemporaryFile(dir=self.cache,prefix=key+'.',delete=False) as tmp:
+                    tmp.write(data)
+                    temporary=Path(tmp.name)
+                temporary.replace(target)
                 self.last = time.monotonic()
                 return data
             except (HTTPError, URLError, TimeoutError):

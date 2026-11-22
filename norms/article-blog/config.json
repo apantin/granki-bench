@@ -1,0 +1,31 @@
+{
+  "version": "article-blog-candidates-v1",
+  "seed": "article-blog-v1",
+  "snapshots": [
+    "CC-MAIN-2021-04",
+    "CC-MAIN-2022-05"
+  ],
+  "target": 1500,
+  "min_words": 150,
+  "max_words": 10000,
+  "min_cyrillic": 0.65,
+  "domain_cap": 0.4,
+  "author_cap": 5,
+  "dedup_threshold": 0.85,
+  "clean_version": "clean-v3",
+  "max_records": 25000,
+  "index_method": "cdx-range-path-prefix",
+  "candidate_limit": 300,
+  "max_blocks": 8,
+  "subgenres": [
+    "personal",
+    "column",
+    "technical",
+    "corporate"
+  ],
+  "dependencies": {
+    "trafilatura": "2.0.0",
+    "warcio": "1.7.5",
+    "datasketch": "1.8.0"
+  }
+}
