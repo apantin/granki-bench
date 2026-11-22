@@ -1,5 +1,5 @@
 {
-  "version": "article-blog-candidates-v2",
+  "version": "article-blog-candidates-v3",
   "seed": "article-blog-v1",
   "snapshots": [
     "CC-MAIN-2021-04",
@@ -16,6 +16,7 @@
   "max_records": 25000,
   "index_method": "cdx-range-path-prefix",
   "candidate_limit": 300,
+  "candidate_limits": {"xakep.ru": 600},
   "max_blocks": 8,
   "subgenres": [
     "personal",

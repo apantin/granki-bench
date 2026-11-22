@@ -84,9 +84,14 @@ def norm_problems(path: str, data: bytes) -> list[str]:
             return ['неверный JSON конфигурации']
         allowed = {'version', 'seed', 'snapshots', 'target', 'min_words', 'max_words', 'min_cyrillic',
                    'domain_cap', 'author_cap', 'dedup_threshold', 'clean_version', 'max_records',
-                   'index_method', 'candidate_limit', 'max_blocks', 'subgenres', 'dependencies'}
+                   'index_method', 'candidate_limit', 'candidate_limits', 'max_blocks', 'subgenres', 'dependencies'}
         if not isinstance(config, dict) or set(config) - allowed:
             return ['недопустимые поля конфигурации нормы']
+        limits=config.get('candidate_limits',{})
+        if not isinstance(limits,dict) or any(not re.fullmatch(r'[a-z0-9.-]+\.[a-z]{2,}',k) or
+                any(k.endswith('.'+p) for p in ('livejournal.com','blogspot.com','liveinternet.ru','diary.ru','teletype.in')) or
+                type(v) is not int or v<1 for k,v in limits.items()):
+            return ['доменные пределы должны содержать только общие домены и положительные целые числа']
     if re.search(r'"(?:salt|split|split_key|author_id|source_url|validation_exclusion)"\s*:', data.decode()):
         return ['приватное поле в норме']
     return []
