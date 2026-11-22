@@ -55,7 +55,7 @@ def norm_problems(path: str, data: bytes) -> list[str]:
     import io
     name = Path(path).name
     fields = {
-        'domains.csv': ['domain', 'subgenre', 'url_pattern', 'author_rule', 'snapshots'],
+        'domains.csv': ['domain', 'subgenre', 'url_pattern', 'path_prefix', 'author_rule', 'snapshots'],
         'groups.csv': ['domain', 'snapshot', 'subgenre', 'documents', 'sha256'],
     }
     if len(Path(path).parts) != 3 or name not in {*fields, 'recipe.md', 'config.json'}:
@@ -67,6 +67,13 @@ def norm_problems(path: str, data: bytes) -> list[str]:
         for row in reader:
             if not re.fullmatch(r'[a-z0-9.-]+\.[a-z]{2,}', row.get('domain', '')):
                 return ['домен должен быть общим именем площадки без URL и автора']
+            if name=='domains.csv':
+                if row.get('author_rule')!='metadata-or-host':
+                    return ['неизвестное общее правило авторства']
+                if any(row['domain'].endswith('.'+p) for p in ('livejournal.com','blogspot.com','liveinternet.ru','diary.ru','teletype.in')):
+                    return ['нельзя публиковать домен отдельного автора платформы']
+                if re.search(r'/@\w+',row['url_pattern']):
+                    return ['шаблон не должен содержать имя автора']
             if name == 'groups.csv':
                 if not row['documents'].isdigit() or not re.fullmatch('[0-9a-f]{64}', row['sha256']):
                     return ['неверный агрегат нормы']
@@ -77,7 +84,7 @@ def norm_problems(path: str, data: bytes) -> list[str]:
             return ['неверный JSON конфигурации']
         allowed = {'version', 'seed', 'snapshots', 'target', 'min_words', 'max_words', 'min_cyrillic',
                    'domain_cap', 'author_cap', 'dedup_threshold', 'clean_version', 'max_records',
-                   'index_method', 'candidate_limit', 'subgenres', 'dependencies'}
+                   'index_method', 'candidate_limit', 'max_blocks', 'subgenres', 'dependencies'}
         if not isinstance(config, dict) or set(config) - allowed:
             return ['недопустимые поля конфигурации нормы']
     if re.search(r'"(?:salt|split|split_key|author_id|source_url|validation_exclusion)"\s*:', data.decode()):
