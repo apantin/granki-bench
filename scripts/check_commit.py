@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-ALLOWED_DIRS = {'bench', 'protocols', 'anchors', 'results', 'scripts', 'tests', 'docs', 'rules', '.githooks'}
+ALLOWED_DIRS = {'bench', 'protocols', 'anchors', 'results', 'scripts', 'tests', 'docs', 'rules', 'norms', '.githooks'}
 ALLOWED_FILES = {'README.md', 'LICENSE', 'NOTICE.md', '.gitignore', 'pyproject.toml'}
 MAX_BYTES = 5 * 1024 * 1024
 # Файлы данных — только в наборах эталонов (anchors/), где их сверяет манифест.
@@ -49,6 +49,42 @@ def is_result(path: str, data: bytes) -> bool:
         return False
 
 
+def norm_problems(path: str, data: bytes) -> list[str]:
+    """Норма содержит рецепт и агрегаты, без отдельных текстов и деления."""
+    import csv
+    import io
+    name = Path(path).name
+    fields = {
+        'domains.csv': ['domain', 'subgenre', 'url_pattern', 'author_rule', 'snapshots'],
+        'groups.csv': ['domain', 'snapshot', 'subgenre', 'documents', 'sha256'],
+    }
+    if len(Path(path).parts) != 3 or name not in {*fields, 'recipe.md', 'config.json'}:
+        return ['недопустимый файл нормы']
+    if name in fields:
+        reader = csv.DictReader(io.StringIO(data.decode('utf-8')))
+        if reader.fieldnames != fields[name]:
+            return ['неверные колонки нормы']
+        for row in reader:
+            if not re.fullmatch(r'[a-z0-9.-]+\.[a-z]{2,}', row.get('domain', '')):
+                return ['домен должен быть общим именем площадки без URL и автора']
+            if name == 'groups.csv':
+                if not row['documents'].isdigit() or not re.fullmatch('[0-9a-f]{64}', row['sha256']):
+                    return ['неверный агрегат нормы']
+    if name == 'config.json':
+        try:
+            config = json.loads(data)
+        except ValueError:
+            return ['неверный JSON конфигурации']
+        allowed = {'version', 'seed', 'snapshots', 'target', 'min_words', 'max_words', 'min_cyrillic',
+                   'domain_cap', 'author_cap', 'dedup_threshold', 'clean_version', 'max_records',
+                   'index_method', 'candidate_limit', 'subgenres', 'dependencies'}
+        if not isinstance(config, dict) or set(config) - allowed:
+            return ['недопустимые поля конфигурации нормы']
+    if re.search(r'"(?:salt|split|split_key|author_id|source_url|validation_exclusion)"\s*:', data.decode()):
+        return ['приватное поле в норме']
+    return []
+
+
 def main() -> int:
     problems = []
     for path in staged():
@@ -58,7 +94,9 @@ def main() -> int:
             continue
         data = staged_blob(path)
         suffix = Path(path).suffix.lower()
-        if suffix in DATA_EXT and top != 'anchors' and not (top == 'protocols' and suffix == '.txt'):  # промпты — .txt
+        if top == 'norms':
+            problems += [f'{path}: {p}' for p in norm_problems(path, data)]
+        if suffix in DATA_EXT and top not in {'anchors', 'norms'} and not (top == 'protocols' and suffix == '.txt'):  # промпты — .txt
             problems.append(f'{path}: файл данных вне anchors/ — данные только в наборах эталонов с манифестом')
         if top == 'results' and Path(path).name != 'README.md' and not is_result(path, data):
             problems.append(f'{path}: в results/ — только JSON результатов bench (поле kind: pairwise или absolute)')
