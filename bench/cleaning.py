@@ -52,6 +52,20 @@ def markdown(text: str) -> CleanText:
     return CleanText(text, typography(text), count)
 
 
+def extracted_text(text: str, *, code_blocks: int = 0) -> CleanText:
+    """Нормализация уже извлечённого текста без повторного разбора разметки.
+
+    DOM/извлекатель уже обработал HTML и блоковые цитаты. Литеральные
+    <параметры>, знаки сравнения и ведущий > здесь являются текстом.
+    """
+    text = text.replace('\r\n', '\n').replace('\r', '\n')
+    text = re.sub(r'[ \t]+\n', '\n', text)
+    text = re.sub(r'\n{3,}', '\n\n', text).strip() + '\n'
+    norm = '\n'.join(re.match(r' *', line).group() + typography(line.lstrip(' '))
+                     for line in text.split('\n'))
+    return CleanText(text, norm, code_blocks)
+
+
 def html_article(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
     """Локальное извлечение HTML; библиотека не выполняет сетевых запросов."""
     return _html_article(content, url, flatten_inline=False)
@@ -93,7 +107,8 @@ def rsdn_author_header_candidate(tree) -> str | None:
     return name
 
 
-def _html_article(content: bytes | str, url: str, *, flatten_inline: bool) -> tuple[CleanText, dict]:
+def _html_article(content: bytes | str, url: str, *, flatten_inline: bool,
+                  preserve_extracted: bool = False) -> tuple[CleanText, dict]:
     from lxml import html as lhtml
     from trafilatura import extract
     from trafilatura.metadata import extract_metadata
@@ -131,14 +146,25 @@ def _html_article(content: bytes | str, url: str, *, flatten_inline: bool) -> tu
             author=match.group(1).strip()
             author_method='rsdn-author-header'
     count = 0
-    for node in tree.xpath('//blockquote|//pre|//script|//style|//nav|//footer|//figcaption|//figure'):
-        if node.tag == 'pre':
-            count += 1
-            node.tag = 'p'
-            node.clear()
-            node.text = '[КОД]'
-        else:
-            node.drop_tree()
+    if preserve_extracted:
+        # Сначала убираем чужие блоки, затем считаем только оставшийся код.
+        for node in tree.xpath('//blockquote|//script|//style|//nav|//footer|//figcaption|//figure'):
+            if node.getparent() is not None:node.drop_tree()
+        for node in tree.xpath('//pre'):
+            count += 1;node.tag = 'p';node.clear(keep_tail=True);node.text = '[КОД]'
+        # Форматирование удаляется до извлечения, не regex по готовому тексту.
+        # Ссылки остаются: их плотность нужна общему извлекателю.
+        for node in tree.xpath('//b|//strong|//em|//i|//u|//font|//code|//tt|//kbd|//samp'):
+            if node.getparent() is not None:node.drop_tag()
+    else:
+        for node in tree.xpath('//blockquote|//pre|//script|//style|//nav|//footer|//figcaption|//figure'):
+            if node.tag == 'pre':
+                count += 1
+                node.tag = 'p'
+                node.clear()
+                node.text = '[КОД]'
+            else:
+                node.drop_tree()
     if flatten_inline:
         # Не трогаем ссылки меню вне содержательных блоков: их плотность нужна
         # извлекателю. drop_tag сохраняет текст и хвосты в исходном порядке.
@@ -148,7 +174,7 @@ def _html_article(content: bytes | str, url: str, *, flatten_inline: bool) -> tu
     extracted = extract(tree, url=url or None, output_format='markdown', include_comments=False,
                         include_tables=False, include_links=False, include_images=False,
                         include_formatting=True, favor_precision=True) or ''
-    clean = markdown(extracted)
+    clean = extracted_text(extracted) if preserve_extracted else markdown(extracted)
     meta = {key: getattr(metadata, key, None) for key in ('title', 'author', 'date', 'sitename')}
     meta.update(author=author,author_method=author_method if author else 'domain-fallback')
     return CleanText(clean.raw, clean.norm, count + clean.code_blocks), meta

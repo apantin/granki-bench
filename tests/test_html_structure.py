@@ -49,5 +49,26 @@ class HTMLStructureTest(unittest.TestCase):
         self.assertNotIn('Табличные данные',out.raw)
         self.assertIn('После таблицы.',out.raw)
 
+    def test_direct_dom_keeps_literal_angles_and_formula_paragraph(self):
+        source='<html><body><article itemprop="articleBody"><p>Если x &lt;1, меняем подход.</p><h2>Следующий раздел</h2><p>Если x &gt;1, продолжаем.</p><p>Параметр &lt;test-value&gt; сохраняется.</p><p>&gt; Доход = результат / затраты</p><p>Литеральная запись **пример** и &amp;lt;.</p></article></body></html>'
+        out,_=html_article_structure_candidate(source,'https://example.org/post')
+        for value in ('x <1','## Следующий раздел','x >1','<test-value>','> Доход = результат / затраты','**пример**','&lt;'):
+            self.assertIn(value,out.raw)
+            self.assertIn(value,out.norm)
+
+    def test_fallback_keeps_literal_angles_without_markdown_reinterpretation(self):
+        paragraph='Обычный текст с <strong>выделением</strong>, параметром <code>&lt;test-value&gt;</code> и условием x &lt;1. '
+        source='<html><body><div><p>'+paragraph*20+'</p><h2>Раздел источника</h2><p>Теперь x &gt;1.</p><p>&gt; Результат = доход / затраты</p></div></body></html>'
+        out,meta=html_article_structure_candidate(source,'https://example.org/post')
+        self.assertEqual(meta['extraction_method'],'trafilatura-inline-fallback')
+        self.assertIn('<test-value>',out.raw)
+        self.assertIn('x <1',out.raw)
+        # Полнота отбора заголовков fallback проверяется отдельно; здесь
+        # проверяем, что постобработка не съедает текст между <1 и >1.
+        self.assertIn('x >1',out.raw)
+        self.assertIn('> Результат = доход / затраты',out.raw)
+        self.assertNotIn('**выделением**',out.raw)
+        self.assertNotIn('`<test-value>`',out.raw)
+
 
 if __name__=='__main__':unittest.main()

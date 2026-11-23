@@ -5,7 +5,7 @@
 from __future__ import annotations
 import re
 from urllib.parse import urlsplit
-from .cleaning import CleanText,HTML_STRUCTURE_VERSION,html_article_inline_candidate,markdown,typography
+from .cleaning import HTML_STRUCTURE_VERSION,_html_article,extracted_text
 
 
 def decode(content: bytes | str) -> str:
@@ -89,7 +89,7 @@ def choose_title(tree,main,host):
 def extract_candidate(content: bytes | str,url: str):
     from lxml import html
     source=decode(content)
-    fallback,meta=html_article_inline_candidate(source,url)
+    fallback,meta=_html_article(source,url,flatten_inline=True,preserve_extracted=True)
     tree=html.fromstring(source);host=(urlsplit(url).hostname or '').removeprefix('www.')
     for comment in tree.xpath('//comment()'):
         if comment.getparent() is not None:comment.drop_tree()
@@ -114,16 +114,12 @@ def extract_candidate(content: bytes | str,url: str):
         clean=fallback
         # Общий fallback остаётся явным: заголовок добавляется только из единственного h1.
         if title_text and not any(line.lstrip('# ').strip()==title_text for line in clean.raw.splitlines()):
-            clean=markdown('# '+title_text+'\n\n'+clean.raw)
-            clean=CleanText(clean.raw,clean.norm,fallback.code_blocks)
+            clean=extracted_text('# '+title_text+'\n\n'+clean.raw,code_blocks=fallback.code_blocks)
     else:
         text=render(main).strip()
         text='\n'.join(line.rstrip() if re.match(r'^ *- ',line) else line.strip() for line in text.splitlines())
         if title_text and main is not title and main not in title.iterancestors():
             text='# '+title_text+'\n\n'+text
-        clean=markdown(text)
-        # Нормализация типографики не уничтожает отступ вложенного списка.
-        norm='\n'.join(re.match(r' *',line).group()+typography(line.lstrip(' ')) for line in clean.raw.split('\n'))
-        clean=CleanText(clean.raw,norm,code_count(main))
+        clean=extracted_text(text,code_blocks=code_count(main))
     return clean,meta|dict(clean_version=HTML_STRUCTURE_VERSION,extraction_method=method,
                            title_source='DOM-h1' if title_text else 'not-found',quality_review='pending')
