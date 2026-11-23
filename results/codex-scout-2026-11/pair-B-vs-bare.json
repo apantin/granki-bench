@@ -1,0 +1,104 @@
+{
+ "kind": "pairwise",
+ "protocol": "v1",
+ "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f",
+ "created": "2026-11-23T00:19:52+00:00",
+ "bench_commit": "0d74a96c1566feb14624188f62285263688d242a+dirty",
+ "judges": [
+  "codex"
+ ],
+ "cli": {
+  "codex": "codex-cli 0.171.0"
+ },
+ "imported": false,
+ "inputs": {
+  "a": {
+   "path": "anchors/pilot-2026-11/texts/B-01-ci.md",
+   "sha256": "a5374fa08f11b8c74f6c73637045163ec9f43295c12327c3565d4a487adf61fc",
+   "words": 799
+  },
+  "b": {
+   "path": "anchors/pilot-2026-11/texts/bare-ci.md",
+   "sha256": "497f2b0b46f6e70c994e117aa0eb73ca4b3c272e3b83c863382f34f957cd45a2",
+   "words": 729
+  },
+  "posts": {
+   "path": "anchors/pilot-2026-11/posts/ci.md",
+   "sha256": "668121cd12eb62dc614c128cbcfecfaf71e473ea70b2446f1e6ee77eb4fae8f8",
+   "words": 199
+  },
+  "reader": "инженеры соседних команд и техлиды, которые решают, внедрять ли кэш зависимостей в CI и чего от него ждать"
+ },
+ "votes": [
+  {
+   "judge": "codex",
+   "model_id": "gpt-6.1-sol",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Текст 2 живее и ближе к голосу Марины: короткие фразы, разговорная интонация, практические советы. Опубликовал бы текст 1: он полезнее для решения, поскольку обозначает ограничения данных, тогда как текст 2 необоснованно объясняет причины промахов, приписывает ускорение железу и выводит долю скачива",
+   "error": false,
+   "cost_usd": null
+  },
+  {
+   "judge": "codex",
+   "model_id": "gpt-6.1-sol",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Алексей, текст 1 звучит живее и ближе к Марине: короткие фразы, прямые выводы, разговорная интонация, хотя местами буквально повторяет эталон. Опубликовал бы текст 2: несмотря на повторы и тяжёлые оговорки, он надёжнее для решения о внедрении — не выдаёт снижение медианы за долю скачивания зависимос",
+   "error": false,
+   "cost_usd": null
+  }
+ ],
+ "a_minus_b": {
+  "human": -1.0,
+  "voice": -1.0,
+  "honesty": 1.0,
+  "reader": 1.0,
+  "overall": 1.0
+ },
+ "spread": {
+  "human": {
+   "per_model": {
+    "codex": -1.0
+   },
+   "stdev": 0.0
+  },
+  "voice": {
+   "per_model": {
+    "codex": -1.0
+   },
+   "stdev": 0.0
+  },
+  "honesty": {
+   "per_model": {
+    "codex": 1.0
+   },
+   "stdev": 0.0
+  },
+  "reader": {
+   "per_model": {
+    "codex": 1.0
+   },
+   "stdev": 0.0
+  },
+  "overall": {
+   "per_model": {
+    "codex": 1.0
+   },
+   "stdev": 0.0
+  }
+ },
+ "elapsed_seconds": 17.301
+}

@@ -1,0 +1,104 @@
+{
+ "kind": "pairwise",
+ "protocol": "v1",
+ "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f",
+ "created": "2026-11-23T00:21:14+00:00",
+ "bench_commit": "0d74a96c1566feb14624188f62285263688d242a+dirty",
+ "judges": [
+  "codex"
+ ],
+ "cli": {
+  "codex": "codex-cli 0.171.0"
+ },
+ "imported": false,
+ "inputs": {
+  "a": {
+   "path": "anchors/pilot-2026-11/texts/E4-02.md",
+   "sha256": "5f2ce8dabf21f571fe87499f041f9aa18b4e9e215058580f52b0feaf9807b525",
+   "words": 811
+  },
+  "b": {
+   "path": "anchors/pilot-2026-11/texts/statya-bike.md",
+   "sha256": "a8365b54f3f6368f3b5d2512a19879d141e441896f8ffe971ee501a84af95155",
+   "words": 851
+  },
+  "posts": {
+   "path": "anchors/pilot-2026-11/posts/bike.md",
+   "sha256": "4a5019c22ff25f7cbba7749ef278805ce305b2e02afc6572d5fb103fd10259c1",
+   "words": 173
+  },
+  "reader": "городской велосипедист, который летом ездит на работу и думает, продолжать ли зимой и покупать ли шипы"
+ },
+ "votes": [
+  {
+   "judge": "codex",
+   "model_id": "gpt-6.1-sol",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Алексей, второй текст живее и ближе к авторскому голосу: бытовые подробности, сухая самоирония, история с забытым падением. Для решения и публикации выбрал бы первый: он лучше учитывает несопоставимость условий, тогда как второй превращает наблюдения в недоказанные рекомендации про обязательность ши",
+   "error": false,
+   "cost_usd": null
+  },
+  {
+   "judge": "codex",
+   "model_id": "gpt-6.1-sol",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "A"
+   },
+   "why": "Алексей, первый текст живее, ближе к авторской самоиронии и полезнее для бытового решения: есть длина маршрута, цена, затраты времени и пределы зимних поездок. Но опубликовал бы второй: он точнее разграничивает наблюдения и выводы, тогда как первый после оговорок всё-таки объявляет шипы необходимыми",
+   "error": false,
+   "cost_usd": null
+  }
+ ],
+ "a_minus_b": {
+  "human": -1.0,
+  "voice": -1.0,
+  "honesty": 1.0,
+  "reader": 0.0,
+  "overall": 1.0
+ },
+ "spread": {
+  "human": {
+   "per_model": {
+    "codex": -1.0
+   },
+   "stdev": 0.0
+  },
+  "voice": {
+   "per_model": {
+    "codex": -1.0
+   },
+   "stdev": 0.0
+  },
+  "honesty": {
+   "per_model": {
+    "codex": 1.0
+   },
+   "stdev": 0.0
+  },
+  "reader": {
+   "per_model": {
+    "codex": 0.0
+   },
+   "stdev": 0.0
+  },
+  "overall": {
+   "per_model": {
+    "codex": 1.0
+   },
+   "stdev": 0.0
+  }
+ },
+ "elapsed_seconds": 27.017
+}

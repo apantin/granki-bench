@@ -1,0 +1,104 @@
+{
+ "kind": "pairwise",
+ "protocol": "v1",
+ "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f",
+ "created": "2026-11-23T00:21:50+00:00",
+ "bench_commit": "0d74a96c1566feb14624188f62285263688d242a+dirty",
+ "judges": [
+  "codex"
+ ],
+ "cli": {
+  "codex": "codex-cli 0.171.0"
+ },
+ "imported": false,
+ "inputs": {
+  "a": {
+   "path": "anchors/pilot-2026-11/texts/E2-02-sections.md",
+   "sha256": "9f04b61f3b6384eb4cef25f8bb3cbdc67a200c6eb7d590b910632024c5823382",
+   "words": 788
+  },
+  "b": {
+   "path": "anchors/pilot-2026-11/texts/A-02-studs.md",
+   "sha256": "1b804f205dc439a77f45d4eec43cfdae190b8b348c2cd95483c664f60e8e92bb",
+   "words": 914
+  },
+  "posts": {
+   "path": "anchors/pilot-2026-11/posts/bike.md",
+   "sha256": "4a5019c22ff25f7cbba7749ef278805ce305b2e02afc6572d5fb103fd10259c1",
+   "words": 173
+  },
+  "reader": "городской велосипедист, который летом ездит на работу и думает, продолжать ли зимой и покупать ли шипы"
+ },
+ "votes": [
+  {
+   "judge": "codex",
+   "model_id": "gpt-6.1-sol",
+   "order": "ab",
+   "votes": {
+    "human": "A",
+    "voice": "A",
+    "honesty": "A",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Алексей, первый текст ближе к сухому, предметному голосу автора: меньше служебных переходов и повторных оговорок, яснее практический вывод для маршрута со льдом. Он аккуратнее разделяет наблюдение и причину, тогда как второй заявляет «они и правда медленнее» вопреки погодным ограничениям и оформляет",
+   "error": false,
+   "cost_usd": null
+  },
+  {
+   "judge": "codex",
+   "model_id": "gpt-6.1-sol",
+   "order": "ba",
+   "votes": {
+    "human": "A",
+    "voice": "A",
+    "honesty": "B",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Алексей, второй текст живее, ближе к авторской прямоте и самоиронии, меньше повторяет оговорки и помогает соотнести покупку с покрытием своего маршрута — я бы выбрал его для публикации после правки. Первый аккуратнее с причинностью: во втором утверждение, что погода «подыгрывала шипам» и дала часть ",
+   "error": false,
+   "cost_usd": null
+  }
+ ],
+ "a_minus_b": {
+  "human": 1.0,
+  "voice": 1.0,
+  "honesty": 0.0,
+  "reader": 1.0,
+  "overall": 1.0
+ },
+ "spread": {
+  "human": {
+   "per_model": {
+    "codex": 1.0
+   },
+   "stdev": 0.0
+  },
+  "voice": {
+   "per_model": {
+    "codex": 1.0
+   },
+   "stdev": 0.0
+  },
+  "honesty": {
+   "per_model": {
+    "codex": 0.0
+   },
+   "stdev": 0.0
+  },
+  "reader": {
+   "per_model": {
+    "codex": 1.0
+   },
+   "stdev": 0.0
+  },
+  "overall": {
+   "per_model": {
+    "codex": 1.0
+   },
+   "stdev": 0.0
+  }
+ },
+ "elapsed_seconds": 17.88
+}

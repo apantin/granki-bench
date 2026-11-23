@@ -1,0 +1,104 @@
+{
+ "kind": "pairwise",
+ "protocol": "v1",
+ "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f",
+ "created": "2026-11-23T00:18:28+00:00",
+ "bench_commit": "0d74a96c1566feb14624188f62285263688d242a",
+ "judges": [
+  "codex"
+ ],
+ "cli": {
+  "codex": "codex-cli 0.171.0"
+ },
+ "imported": false,
+ "inputs": {
+  "a": {
+   "path": "anchors/pilot-2026-11/texts/A-01-days-catchphrase.md",
+   "sha256": "b2ec74073580dfb194e465fba78176b566989dd4c3aeed051b6e94af268dd18f",
+   "words": 743
+  },
+  "b": {
+   "path": "anchors/pilot-2026-11/texts/A-01-days.md",
+   "sha256": "4a9568b4a2b0eb946131285c59c8519b27302707b6c2a4111f300b8cbf9d1683",
+   "words": 736
+  },
+  "posts": {
+   "path": "anchors/pilot-2026-11/posts/bike.md",
+   "sha256": "4a5019c22ff25f7cbba7749ef278805ce305b2e02afc6572d5fb103fd10259c1",
+   "words": 173
+  },
+  "reader": "городской велосипедист, который летом ездит на работу и думает, продолжать ли ездить зимой"
+ },
+ "votes": [
+  {
+   "judge": "codex",
+   "model_id": "gpt-6.1-sol",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "=",
+    "reader": "=",
+    "overall": "B"
+   },
+   "why": "Алексей, тексты различаются только финальной цитатой из старого поста: в первом она выглядит приклеенной и подменяет голос автора повторением знакомой фразы. Второй звучит естественнее, а данные, ограничения и польза для решения в обоих одинаковы.",
+   "error": false,
+   "cost_usd": null
+  },
+  {
+   "judge": "codex",
+   "model_id": "gpt-6.1-sol",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "=",
+    "reader": "=",
+    "overall": "B"
+   },
+   "why": "Второй текст отличается только дословно перенесённой концовкой старого поста: здесь она не вырастает из содержания и выглядит механической имитацией авторского голоса, поэтому первый естественнее и предпочтительнее для публикации. Данные, ограничения и полезность для решения о зимних поездках одинак",
+   "error": false,
+   "cost_usd": null
+  }
+ ],
+ "a_minus_b": {
+  "human": -1.0,
+  "voice": -1.0,
+  "honesty": 0.0,
+  "reader": 0.0,
+  "overall": -1.0
+ },
+ "spread": {
+  "human": {
+   "per_model": {
+    "codex": -1.0
+   },
+   "stdev": 0.0
+  },
+  "voice": {
+   "per_model": {
+    "codex": -1.0
+   },
+   "stdev": 0.0
+  },
+  "honesty": {
+   "per_model": {
+    "codex": 0.0
+   },
+   "stdev": 0.0
+  },
+  "reader": {
+   "per_model": {
+    "codex": 0.0
+   },
+   "stdev": 0.0
+  },
+  "overall": {
+   "per_model": {
+    "codex": -1.0
+   },
+   "stdev": 0.0
+  }
+ },
+ "elapsed_seconds": 17.351
+}

@@ -1,0 +1,104 @@
+{
+ "kind": "pairwise",
+ "protocol": "v1",
+ "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f",
+ "created": "2026-11-23T00:20:15+00:00",
+ "bench_commit": "0d74a96c1566feb14624188f62285263688d242a+dirty",
+ "judges": [
+  "codex"
+ ],
+ "cli": {
+  "codex": "codex-cli 0.171.0"
+ },
+ "imported": false,
+ "inputs": {
+  "a": {
+   "path": "anchors/pilot-2026-11/texts/C-01-solar.md",
+   "sha256": "c3d491fc550f8270c223d04573c95c0f63647f04cccaddcdb654d9d3ead128f9",
+   "words": 1641
+  },
+  "b": {
+   "path": "anchors/pilot-2026-11/texts/statya-solar.md",
+   "sha256": "ecdda28850df422e947b09d4ade096d9458d564c98ef3d2567e8e5a790ce2866",
+   "words": 949
+  },
+  "posts": {
+   "path": "anchors/pilot-2026-11/posts/solar.md",
+   "sha256": "6a6970950bdb3a4e30bfb1a30e1e63b2d164293cefbbc6fff7d4f00a342d1046",
+   "words": 219
+  },
+  "reader": "дачник, не инженер, который думает поставить солнечную станцию себе: ставить ли и какого размера"
+ },
+ "votes": [
+  {
+   "judge": "codex",
+   "model_id": "gpt-6.1-sol",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "A",
+    "honesty": "A",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Первый ближе к бытовому голосу автора и честнее обозначает ограничения данных, хотя второй читается естественнее: первый перегружен повторяющимися оговорками. Для решения читателя и публикации выбираю первый: во втором необоснованны выводы о пользе мойки, потерянной энергии и достаточности шести пан",
+   "error": false,
+   "cost_usd": null
+  },
+  {
+   "judge": "codex",
+   "model_id": "gpt-6.1-sol",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Алексей, первый текст естественнее, ближе к прямому бытовому голосу автора и полезнее для выбора станции; его выбрал бы для публикации после заполнения пропусков и проверки выводов о мойке, окупаемости и достаточности мощности. Второй честнее обозначает ограничения данных, но повторяющиеся оговорки ",
+   "error": false,
+   "cost_usd": null
+  }
+ ],
+ "a_minus_b": {
+  "human": -1.0,
+  "voice": 0.0,
+  "honesty": 1.0,
+  "reader": 0.0,
+  "overall": 0.0
+ },
+ "spread": {
+  "human": {
+   "per_model": {
+    "codex": -1.0
+   },
+   "stdev": 0.0
+  },
+  "voice": {
+   "per_model": {
+    "codex": 0.0
+   },
+   "stdev": 0.0
+  },
+  "honesty": {
+   "per_model": {
+    "codex": 1.0
+   },
+   "stdev": 0.0
+  },
+  "reader": {
+   "per_model": {
+    "codex": 0.0
+   },
+   "stdev": 0.0
+  },
+  "overall": {
+   "per_model": {
+    "codex": 0.0
+   },
+   "stdev": 0.0
+  }
+ },
+ "elapsed_seconds": 23.325
+}

@@ -1,0 +1,104 @@
+{
+ "kind": "pairwise",
+ "protocol": "v1",
+ "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f",
+ "created": "2026-11-23T00:21:32+00:00",
+ "bench_commit": "0d74a96c1566feb14624188f62285263688d242a+dirty",
+ "judges": [
+  "codex"
+ ],
+ "cli": {
+  "codex": "codex-cli 0.171.0"
+ },
+ "imported": false,
+ "inputs": {
+  "a": {
+   "path": "anchors/pilot-2026-11/texts/B-01-ci.md",
+   "sha256": "a5374fa08f11b8c74f6c73637045163ec9f43295c12327c3565d4a487adf61fc",
+   "words": 799
+  },
+  "b": {
+   "path": "anchors/pilot-2026-11/texts/statya-ci.md",
+   "sha256": "93dc9105ec26e8f341f1e82097bc611fe8af96725283285193042c1441b056c2",
+   "words": 697
+  },
+  "posts": {
+   "path": "anchors/pilot-2026-11/posts/ci.md",
+   "sha256": "668121cd12eb62dc614c128cbcfecfaf71e473ea70b2446f1e6ee77eb4fae8f8",
+   "words": 199
+  },
+  "reader": "инженеры соседних команд и техлиды, которые решают, внедрять ли кэш зависимостей в CI и чего от него ждать"
+ },
+ "votes": [
+  {
+   "judge": "codex",
+   "model_id": "gpt-6.1-sol",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Алексей, второй текст живее и ближе к голосу Марины: конкретный заход, самоирония, прямое обращение к коллегам. Для решения и публикации выбираю первый: он обозначает ограничения данных, тогда как второй без достаточных оснований приписывает ускорение кэшу и железу, объясняет причины промахов и прив",
+   "error": false,
+   "cost_usd": null
+  },
+  {
+   "judge": "codex",
+   "model_id": "gpt-6.1-sol",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Алексей, текст 1 ближе к Марине: прямой разговор, самоирония и конкретные советы; текст 2 перегружен повторами и оговорками. Для решения о внедрении и публикации выбираю текст 2: он точнее обозначает ограничения сравнения, тогда как первый без достаточных оснований объявляет разницу «чистым эффектом",
+   "error": false,
+   "cost_usd": null
+  }
+ ],
+ "a_minus_b": {
+  "human": -1.0,
+  "voice": -1.0,
+  "honesty": 1.0,
+  "reader": 1.0,
+  "overall": 1.0
+ },
+ "spread": {
+  "human": {
+   "per_model": {
+    "codex": -1.0
+   },
+   "stdev": 0.0
+  },
+  "voice": {
+   "per_model": {
+    "codex": -1.0
+   },
+   "stdev": 0.0
+  },
+  "honesty": {
+   "per_model": {
+    "codex": 1.0
+   },
+   "stdev": 0.0
+  },
+  "reader": {
+   "per_model": {
+    "codex": 1.0
+   },
+   "stdev": 0.0
+  },
+  "overall": {
+   "per_model": {
+    "codex": 1.0
+   },
+   "stdev": 0.0
+  }
+ },
+ "elapsed_seconds": 18.334
+}
