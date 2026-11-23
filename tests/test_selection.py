@@ -4,6 +4,18 @@ from bench.corpus_selection import quota,group_hashes
 
 
 class SelectionTest(unittest.TestCase):
+    def test_coauthor_limit_counts_every_member_and_each_subgenre_separately(self):
+        docs=self.fixtures()[:5]
+        for i,row in enumerate(docs):row.update(subgenre='personal' if i<4 else 'column',author='composite',authors=['first',f'other-{i}'])
+        selected=quota(docs,seed='v1',target=10,subgenres=['personal','column'],domain_cap=1,author_cap=2)
+        self.assertEqual(sum(r['subgenre']=='personal' for r in selected),2)
+        self.assertEqual(sum(r['subgenre']=='column' for r in selected),1)
+        self.assertEqual([r['id'] for r in selected],[r['id'] for r in quota(list(reversed(docs)),seed='v1',target=10,subgenres=['personal','column'],domain_cap=1,author_cap=2)])
+
+    def test_empty_author_list_cannot_bypass_cap(self):
+        docs=self.fixtures()[:1];docs[0]['authors']=[]
+        with self.assertRaises(ValueError):quota(docs,seed='v1',target=2,subgenres=['personal'],domain_cap=1,author_cap=1)
+
     def fixtures(self):
         return [dict(id=str(i),snapshot='CC-MAIN-2021-04',url=f'https://example.org/{i}',
                      sha256=hashlib.sha256(str(i).encode()).hexdigest(),domain=f'd{i%5}.org',

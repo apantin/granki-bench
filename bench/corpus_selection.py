@@ -67,10 +67,14 @@ def quota(documents: list[dict], *, seed: str, target: int, subgenres: list[str]
     for doc in sorted(documents,key=lambda d:rank(seed,d)):
         sub=doc['subgenre']
         if sub not in subgenres: continue
-        if counts[sub]>=per_subgenre or domains[sub,doc['domain']]>=per_domain or authors[sub,doc['author']]>=author_cap:
+        members=doc.get('authors',[doc['author']])
+        if not isinstance(members,list) or not members or any(not isinstance(a,str) or not a.strip() for a in members):raise ValueError('Нужен непустой список авторских групп')
+        members=set(members)
+        if counts[sub]>=per_subgenre or domains[sub,doc['domain']]>=per_domain or any(authors[sub,a]>=author_cap for a in members):
             continue
         result.append(doc)
-        counts[sub]+=1;domains[sub,doc['domain']]+=1;authors[sub,doc['author']]+=1
+        counts[sub]+=1;domains[sub,doc['domain']]+=1
+        for author in members:authors[sub,author]+=1
     return result
 
 
