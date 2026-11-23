@@ -5,6 +5,29 @@ from bench.cleaning import markdown, typography, words
 
 class CleaningTest(unittest.TestCase):
     @unittest.skipUnless(importlib.util.find_spec('trafilatura'),'Не установлены зависимости сбора данных')
+    def test_inline_candidate_preserves_words_order_and_blocks(self):
+        from bench.cleaning import html_article_inline_candidate,HTML_INLINE_VERSION,VERSION
+        intro='На встрече выступят <strong>Анна</strong>, <em><a href="https://example.org/boris">Борис</a></em> и <span>Вера</span>. '
+        body='Специалисты обсудят методы проверки русского текста и разберут примеры из практики. '*20
+        source='<html><body><article><h2>Встреча <span>специалистов</span></h2><p>'+intro+body+'</p><ul><li>Первый <strong>пункт</strong> списка.</li><li>Второй пункт.</li></ul></article></body></html>'
+        result,meta=html_article_inline_candidate(source)
+        self.assertEqual(VERSION,'clean-v3')
+        self.assertEqual(meta['clean_version'],HTML_INLINE_VERSION)
+        self.assertIn('На встрече выступят Анна, Борис и Вера.',result.raw)
+        self.assertIn('## Встреча специалистов',result.raw)
+        self.assertIn('- Первый пункт списка.',result.raw)
+        self.assertNotIn('https://example.org',result.raw)
+
+    @unittest.skipUnless(importlib.util.find_spec('trafilatura'),'Не установлены зависимости сбора данных')
+    def test_inline_candidate_keeps_removal_policy(self):
+        from bench.cleaning import html_article_inline_candidate
+        source='<html><body><article><p>'+('Проверяем порядок слов в основном тексте. '*30)+'</p><blockquote>Чужая цитата</blockquote><figure><figcaption>Подпись картинки</figcaption></figure><pre>secret_code()</pre></article></body></html>'
+        result,_=html_article_inline_candidate(source)
+        self.assertNotIn('Чужая цитата',result.raw)
+        self.assertNotIn('Подпись картинки',result.raw)
+        self.assertNotIn('secret_code',result.raw)
+        self.assertIn('[КОД]',result.raw)
+    @unittest.skipUnless(importlib.util.find_spec('trafilatura'),'Не установлены зависимости сбора данных')
     def test_utf8_with_late_charset(self):
         from bench.cleaning import html_article
         body='Русский текст сохраняется без искажения кодировки. '*30

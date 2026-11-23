@@ -6,6 +6,7 @@ import unicodedata
 from dataclasses import dataclass
 
 VERSION = 'clean-v3'
+HTML_INLINE_VERSION = 'clean-v4-inline-candidate'
 WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё]+(?:[-’'][A-Za-zА-Яа-яЁё]+)*|\d+(?:[.,]\d+)?")
 
 
@@ -52,6 +53,16 @@ def markdown(text: str) -> CleanText:
 
 def html_article(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
     """Локальное извлечение HTML; библиотека не выполняет сетевых запросов."""
+    return _html_article(content, url, flatten_inline=False)
+
+
+def html_article_inline_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
+    """Отдельный кандидат: сохраняет порядок inline-текста, не меняет clean-v3."""
+    clean, meta = _html_article(content, url, flatten_inline=True)
+    return clean, meta | {'clean_version': HTML_INLINE_VERSION}
+
+
+def _html_article(content: bytes | str, url: str, *, flatten_inline: bool) -> tuple[CleanText, dict]:
     from lxml import html as lhtml
     from trafilatura import extract
     from trafilatura.metadata import extract_metadata
@@ -97,6 +108,12 @@ def html_article(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
             node.text = '[КОД]'
         else:
             node.drop_tree()
+    if flatten_inline:
+        # Не трогаем ссылки меню вне содержательных блоков: их плотность нужна
+        # извлекателю. drop_tag сохраняет текст и хвосты в исходном порядке.
+        for node in tree.xpath('//a|//b|//strong|//em|//i|//span'):
+            if node.getparent() is not None and node.xpath('ancestor::p|ancestor::li|ancestor::h1|ancestor::h2|ancestor::h3|ancestor::h4|ancestor::h5|ancestor::h6'):
+                node.drop_tag()
     extracted = extract(tree, url=url or None, output_format='markdown', include_comments=False,
                         include_tables=False, include_links=False, include_images=False,
                         include_formatting=True, favor_precision=True) or ''
