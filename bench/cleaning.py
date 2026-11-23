@@ -8,6 +8,7 @@ from dataclasses import dataclass
 VERSION = 'clean-v3'
 HTML_INLINE_VERSION = 'clean-v4-inline-candidate'
 HTML_STRUCTURE_VERSION = 'clean-v5-structure-candidate'
+HTML_EDITORIAL_VERSION = 'clean-v6-editorial-candidate'
 WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё]+(?:[-’'][A-Za-zА-Яа-яЁё]+)*|\d+(?:[.,]\d+)?")
 
 
@@ -81,6 +82,12 @@ def html_article_structure_candidate(content: bytes | str, url: str = '') -> tup
     """Отдельный DOM-кандидат: не включён в clean-v3 и рецепты нормы."""
     from .html_structure import extract_candidate
     return extract_candidate(content, url)
+
+
+def html_article_editorial_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
+    """Отдельный кандидат: сохраняет явные редакционные врезки, не меняет v3/v5."""
+    from .html_structure import extract_candidate
+    return extract_candidate(content, url, preserve_editorial=True)
 
 
 def rsdn_author_header_candidate(tree) -> str | None:
