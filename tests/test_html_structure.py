@@ -416,5 +416,66 @@ class HTMLStructureTest(unittest.TestCase):
         out,_=html_article_editorial_candidate(source,'https://example.org/example')
         self.assertIn('На фото:',out.raw)
 
+    def test_named_teplitsa_quote_is_not_restored_as_author_callout(self):
+        source='<html><body><div class="entry-content"><blockquote class="wp-block-tst-tst-quote"><p class="quote-content">Чужой отзыв.</p><p class="author-name">Автор отзыва</p><p class="author-about">Участник</p><pre>foreign_code()</pre></blockquote>Продолжение.<blockquote><p>Авторская врезка.</p></blockquote><pre>own_code()</pre></div></body></html>'
+        out,meta=html_article_editorial_candidate(source,'https://te-st.org/example')
+        for value in ('Чужой отзыв.','Автор отзыва','Участник'):self.assertNotIn(value,out.raw)
+        self.assertIn('Продолжение.',out.raw);self.assertIn('Авторская врезка.',out.raw)
+        self.assertEqual(meta['quote_review_blocks'],1);self.assertEqual(out.code_blocks,1)
+
+    def test_named_quote_requires_known_host_role_and_nonempty_direct_attribution(self):
+        variants=[('<blockquote class="wp-block-tst-tst-quote"><p>Авторский текст.</p><p class="author-name"> </p></blockquote>','te-st.org'),
+                  ('<blockquote><p>Авторский текст.</p><p class="author-name">Автор</p></blockquote>','te-st.org'),
+                  ('<blockquote class="wp-block-tst-tst-quote"><p>Авторский текст.</p><p class="author-name">Автор</p></blockquote>','example.org')]
+        for block,host in variants:
+            out,_=html_article_editorial_candidate('<html><body><div class="entry-content">'+block+'</div></body></html>','https://'+host+'/example')
+            self.assertIn('Авторский текст.',out.raw)
+
+    def test_teplitsa_pure_cta_paragraphs_leave_descriptions_and_tails(self):
+        source='<html><body><div class="entry-content"><h2>Возможность</h2><p>Описание события.</p><p class="wp-block-paragraph"><a href="https://example.org/event">Узнать подробности</a>.</p>Продолжение.<p class="wp-block-paragraph"><a href="https://example.org/form">Зарегистрироваться.</a></p>Конец.</div></body></html>'
+        old,_=html_article_structure_candidate(source,'https://te-st.org/example')
+        out,_=html_article_editorial_candidate(source,'https://te-st.org/example')
+        self.assertIn('Узнать подробности',old.raw)
+        self.assertNotIn('Узнать подробности',out.raw);self.assertNotIn('Зарегистрироваться',out.raw)
+        for value in ('## Возможность','Описание события.','Продолжение.','Конец.'):self.assertIn(value,out.raw)
+
+    def test_cta_words_need_pure_direct_paragraph_known_role_and_web_link(self):
+        variants=['<p class="wp-block-paragraph">Можно <a href="https://example.org/">Узнать подробности</a>.</p>',
+                  '<p><a href="https://example.org/">Узнать подробности</a>.</p>',
+                  '<p class="wp-block-paragraph"><a href="https://example.org/">Узнать подробности</a><span>Важно</span></p>',
+                  '<blockquote><p class="wp-block-paragraph"><a href="https://example.org/">Узнать подробности</a>.</p></blockquote>',
+                  '<p class="wp-block-paragraph"><a href="#details">Узнать подробности</a>.</p>']
+        for block in variants:
+            out,_=html_article_editorial_candidate('<html><body><div class="entry-content">'+block+'</div></body></html>','https://te-st.org/example')
+            self.assertIn('Узнать подробности',out.raw)
+        source='<html><body><div class="entry-content"><p class="wp-block-paragraph"><a href="https://example.org/">Узнать подробности</a>.</p></div></body></html>'
+        out,_=html_article_editorial_candidate(source,'https://example.org/example');self.assertIn('Узнать подробности',out.raw)
+
+    def test_report_related_navigation_requires_pure_label_and_internal_report(self):
+        source='<html><body><div class="entry-content"><blockquote><p>Еще по теме: <a href="https://te-st.org/reports/synthetic/">Соседний отчёт</a></p></blockquote>Продолжение.<blockquote><p>Еще по теме: <a href="/reports/source/">Авторский источник</a> поясняет мысль.</p></blockquote><blockquote><p>Еще по теме: <a href="https://example.org/reports/external/">Внешний отчёт</a></p></blockquote><blockquote><p>Еще по теме: <a href="/reports/">Архив отчётов</a></p></blockquote></div></body></html>'
+        out,meta=html_article_editorial_candidate(source,'https://te-st.org/example')
+        self.assertNotIn('Соседний отчёт',out.raw)
+        for value in ('Продолжение.','Авторский источник поясняет мысль.','Внешний отчёт','Архив отчётов'):self.assertIn(value,out.raw)
+        self.assertEqual(meta['quote_review_blocks'],3)
+
+    def test_terminal_source_link_credit_keeps_metadata_and_following_tail(self):
+        source='<html><body><div class="article__content"><p>Авторская проза.</p><p><strong><a href="https://example.org/original" rel="nofollow">Источник</a></strong></p>Продолжение.</div></body></html>'
+        old,_=html_article_structure_candidate(source,'https://zavtra.ru/example')
+        out,meta=html_article_editorial_candidate(source,'https://zavtra.ru/example')
+        self.assertIn('Источник',old.raw);self.assertNotIn('Источник',out.raw)
+        self.assertIn('Авторская проза.',out.raw);self.assertIn('Продолжение.',out.raw)
+        self.assertEqual(meta['source_credits'],[dict(text='Источник',links=['https://example.org/original'])])
+
+    def test_source_link_words_outside_exact_terminal_role_are_preserved(self):
+        variants=['<p><strong><a href="https://example.org/" rel="nofollow">Источник</a></strong></p><p>Дальше проза.</p>',
+                  '<p>Источник <a href="https://example.org/" rel="nofollow">поясняет мысль</a>.</p>',
+                  '<p><strong><a href="https://example.org/">Источник</a></strong></p>',
+                  '<p><strong><a href="/article/" rel="nofollow">Источник</a></strong></p>',
+                  '<p><strong><a href="https://zavtra.ru/another/" rel="nofollow">Источник</a></strong></p>',
+                  '<p><strong><a href="https://example.org/" rel="nofollow">Источник</a> авторской мысли</strong></p>']
+        for block in variants:
+            out,meta=html_article_editorial_candidate('<html><body><div class="article__content">'+block+'</div></body></html>','https://zavtra.ru/example')
+            self.assertIn('Источник',out.raw);self.assertEqual(meta['source_credits'],[])
+
 
 if __name__=='__main__':unittest.main()
