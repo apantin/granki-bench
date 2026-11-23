@@ -81,7 +81,9 @@ def restore_editorial_blocks(main,host):
         for parent in node.iterancestors():
             if parent is main:break
             parents.append(parent)
-        if any(n.tag in SKIP-{'figure'} for n in parents) or attributed_quote(node):continue
+        named_teplitsa_quote=(host=='te-st.org' and 'wp-block-tst-tst-quote' in node.get('class','').split()
+            and node.xpath('./p[contains(concat(" ",normalize-space(@class)," ")," author-name ") and normalize-space()]'))
+        if any(n.tag in SKIP-{'figure'} for n in parents) or attributed_quote(node) or named_teplitsa_quote:continue
         figures=[n for n in parents if n.tag=='figure']
         if any(''.join(n.text_content().split())!=''.join(node.text_content().split()) for n in figures):
             unresolved+=1;continue
@@ -109,6 +111,12 @@ def restore_legacy_html_blocks(main,host):
 def drop_editorial_widgets(main,host):
     source_credits=[]
     if host=='te-st.org':
+        for node in main.xpath('./p[contains(concat(" ",normalize-space(@class)," ")," wp-block-paragraph ")]'):
+            links=node.xpath('./a[@href]');value=' '.join(node.text_content().split())
+            if len(node)==1 and len(links)==1:
+                label=' '.join(links[0].text_content().split()).removesuffix('.')
+                target=urlsplit(links[0].get('href',''))
+                if label in {'Узнать подробности','Зарегистрироваться'} and value in {label,label+'.'} and target.scheme in {'http','https'} and target.hostname:node.drop_tree()
         for node in main.xpath('.//div[contains(concat(" ",normalize-space(@class)," ")," testimonial ")]'):
             if any(cite.text_content().strip() for cite in node.xpath('.//cite')):node.drop_tree()
         for node in main.xpath('.//blockquote'):
@@ -116,7 +124,7 @@ def drop_editorial_widgets(main,host):
             label=' '.join(''.join(node.xpath('.//text()[not(ancestor::a)]')).split()).casefold()
             if label in {'еще по теме:','ещё по теме:'} and links and all(
                     (urlsplit(a.get('href','')).hostname or host).removeprefix('www.')==host
-                    and re.match(r'^/\d{4}/\d{2}/\d{2}/',urlsplit(a.get('href','')).path) for a in links):node.drop_tree()
+                    and re.match(r'^/(?:\d{4}/\d{2}/\d{2}/|reports/[^/]+)',urlsplit(a.get('href','')).path) for a in links):node.drop_tree()
     if host=='journal.tinkoff.ru':
         for node in main.xpath('./div[contains(concat(" ",normalize-space(@class)," ")," article-author ") and @itemprop="author"][.//*[@itemprop="name"]]'):
             if node.xpath('.//a[contains(concat(" ",normalize-space(@class)," ")," article-author__link ")]'):node.drop_tree()
@@ -165,11 +173,15 @@ def drop_editorial_widgets(main,host):
         if paragraphs:
             node=paragraphs[0];strong=node.xpath('./strong');value=' '.join(node.text_content().split())
             links=node.xpath('.//a[@href]')
+            terminal_source=(value=='Источник' and len(links)==1 and 'nofollow' in links[0].get('rel','').split()
+                and urlsplit(links[0].get('href','')).scheme in {'http','https'} and urlsplit(links[0].get('href','')).hostname
+                and urlsplit(links[0].get('href','')).hostname.removeprefix('www.')!=host)
+            radio_source=(re.match(r'^Из эфира на\b',value,re.I)
+                and any((urlsplit(a.get('href','')).hostname or '').removeprefix('www.')=='radiokp.ru'
+                        and urlsplit(a.get('href','')).path.startswith('/podcast/')
+                        and 'nofollow' in a.get('rel','').split() for a in links))
             if (node.getnext() is None and len(node)==1 and len(strong)==1
-                    and value==' '.join(strong[0].text_content().split()) and re.match(r'^Из эфира на\b',value,re.I)
-                    and any((urlsplit(a.get('href','')).hostname or '').removeprefix('www.')=='radiokp.ru'
-                            and urlsplit(a.get('href','')).path.startswith('/podcast/')
-                            and 'nofollow' in a.get('rel','').split() for a in links)):
+                    and value==' '.join(strong[0].text_content().split()) and (terminal_source or radio_source)):
                 source_credits.append(dict(text=value,links=[a.get('href') for a in links]));node.drop_tree()
         paragraphs=main.xpath('./p[last()]')
         if paragraphs:
