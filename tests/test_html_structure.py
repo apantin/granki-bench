@@ -478,4 +478,50 @@ class HTMLStructureTest(unittest.TestCase):
             self.assertIn('Источник',out.raw);self.assertEqual(meta['source_credits'],[])
 
 
+    def test_selectel_primary_author_card_is_removed_only_in_editorial_mode(self):
+        card='<div class="post__preview-author"><a class="author-card" href="/blog/author/example/"><div class="author-card__name">Автор примера</div><div class="author-card__position">Редактор</div></a></div>'
+        source='<html><body><div itemprop="articleBody"><p>Вступление.</p>'+card+'Продолжение.<p>Вывод.</p></div></body></html>'
+        out,_=html_article_editorial_candidate(source,'https://selectel.ru/blog/example/')
+        for value in ('Вступление.','Продолжение.','Вывод.'):self.assertIn(value,out.raw)
+        self.assertNotIn('Автор примера',out.raw);self.assertNotIn('Редактор',out.raw)
+        old,_=html_article_structure_candidate(source,'https://selectel.ru/blog/example/')
+        self.assertIn('Автор примера',old.raw)
+        for variant in (card.replace('</a></div>','</a><p>Содержательная оговорка.</p></div>'),card.replace('/blog/author/example/','https://elsewhere.example/blog/author/example/'),card.replace('author-card__name','example-name')):
+            with self.subTest(variant=variant):
+                out,_=html_article_editorial_candidate('<div itemprop="articleBody">'+variant+'</div>','https://selectel.ru/blog/example/')
+                self.assertIn('Автор примера',out.raw)
+
+    def test_netology_author_panel_keeps_mixed_content_and_other_domains(self):
+        panel='<div class="ntlgy-author"><figure class="ntlgy-author-portrait"><img src="portrait.jpg"></figure><p><strong>Автор примера</strong></p><p>Редактор</p></div>'
+        out,_=html_article_editorial_candidate('<div class="entry-content"><p>Начало.</p>'+panel+'Продолжение.</div>','https://netology.ru/blog/example')
+        self.assertNotIn('Автор примера',out.raw);self.assertIn('Продолжение.',out.raw)
+        for variant,url in ((panel.replace('</div>','<p>Авторское объяснение.</p></div>'),'https://netology.ru/blog/example'),(panel,'https://example.org/post'),(panel.replace('ntlgy-author-portrait','example-portrait'),'https://netology.ru/blog/example')):
+            out,_=html_article_editorial_candidate('<div class="entry-content">'+variant+'</div>',url)
+            self.assertIn('Автор примера',out.raw)
+
+    def test_netology_course_and_related_links_keep_explanations_and_quoted_examples(self):
+        course='<p>Программа обучения: «<a href="/programs/example">Курс примера</a>»</p>'
+        related='<p>Читать ещё: «<a href="/blog/another">Другая статья</a>»</p>'
+        source='<div class="entry-content"><p>Основной текст.</p>'+course+related+'<p>Концовка.</p></div>'
+        out,_=html_article_editorial_candidate(source,'https://netology.ru/blog/example')
+        self.assertNotIn('Курс примера',out.raw);self.assertNotIn('Другая статья',out.raw)
+        self.assertIn('Концовка.',out.raw)
+        variants=(course.replace('</p>',' доступна при выполнении условий.</p>'),course.replace('/programs/example','https://elsewhere.example/programs/example'),'<blockquote>'+course+'</blockquote>')
+        for variant in variants:
+            out,_=html_article_editorial_candidate('<div class="entry-content">'+variant+'</div>','https://netology.ru/blog/example')
+            self.assertIn('Курс примера',out.raw)
+
+    def test_selectel_logo_labels_are_preserved_as_a_list_without_changing_v5(self):
+        table='<table><tbody><tr><th>Студия Альфа</th><th>Команда <a>Бета</a></th></tr><tr><th><img src="a.png"></th><th><noscript><img src="b.png"></noscript><img src="b.png"></th></tr></tbody></table>'
+        source='<div itemprop="articleBody"><p>Наши клиенты.</p>'+table+'После списка.</div>'
+        out,meta=html_article_editorial_candidate(source,'https://selectel.ru/blog/example')
+        self.assertIn('- Студия Альфа\n- Команда Бета',out.raw);self.assertIn('После списка.',out.raw)
+        self.assertEqual(meta['preserved_label_tables'],1)
+        old,_=html_article_structure_candidate(source,'https://selectel.ru/blog/example')
+        self.assertNotIn('Студия Альфа',old.raw)
+        for variant,url in ((table.replace('<img src="a.png">','10 единиц'),'https://selectel.ru/blog/example'),(table.replace('<th>Студия','<th colspan="2">Студия'),'https://selectel.ru/blog/example'),(table.replace('</tbody>','<tr><td>Другие данные</td></tr></tbody>'),'https://selectel.ru/blog/example'),(table,'https://example.org/post')):
+            out,meta=html_article_editorial_candidate('<div itemprop="articleBody">'+variant+'</div>',url)
+            self.assertNotIn('Студия Альфа',out.raw);self.assertNotIn('preserved_label_tables',meta)
+
+
 if __name__=='__main__':unittest.main()
