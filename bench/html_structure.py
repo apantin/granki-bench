@@ -108,8 +108,35 @@ def restore_legacy_html_blocks(main,host):
     return dict(preserved_legacy_html_blocks=restored,unresolved_legacy_html_figures=unresolved)
 
 
+def restore_label_tables(main,host):
+    """Одномерный список подписей над логотипами, не произвольная таблица данных."""
+    restored=0
+    if host not in {'selectel.ru','blog.selectel.ru'}:return restored
+    for table in main.xpath('./table'):
+        rows=table.xpath('./tr|./thead/tr|./tbody/tr|./tfoot/tr')
+        if len(rows)!=2 or table.xpath('.//table|.//pre|.//blockquote|.//figure|.//figcaption'):continue
+        labels=list(rows[0]);pictures=list(rows[1])
+        if len(labels)<2 or len(labels)!=len(pictures):continue
+        if any(n.tag!='th' or not n.text_content().strip() for n in labels):continue
+        if any(n.tag not in {'td','th'} or n.text_content().strip() or not n.xpath('.//img') for n in pictures):continue
+        if any(n.get(k,'1')!='1' for n in labels+pictures for k in ('rowspan','colspan')):continue
+        if ''.join(table.text_content().split())!=''.join(''.join(n.text_content().split()) for n in labels):continue
+        table.tag='ul';table.text=None;table[:]=labels
+        for node in labels:node.tag='li';node.tail=None
+        restored+=1
+    return restored
+
+
 def drop_editorial_widgets(main,host):
     source_credits=[]
+    if host in {'selectel.ru','blog.selectel.ru'}:
+        for node in main.xpath('.//div[contains(concat(" ",normalize-space(@class)," ")," post__preview-author ")]'):
+            cards=node.xpath('./a[contains(concat(" ",normalize-space(@class)," ")," author-card ")]')
+            if len(node)!=1 or len(cards)!=1:continue
+            target=urlsplit(cards[0].get('href',''))
+            names=cards[0].xpath('.//*[contains(concat(" ",normalize-space(@class)," ")," author-card__name ") and normalize-space()]')
+            if (len(names)==1 and (target.hostname or host) in {'selectel.ru','blog.selectel.ru'}
+                    and target.path.startswith('/blog/author/') and ''.join(node.text_content().split())==''.join(cards[0].text_content().split())):node.drop_tree()
     if host=='te-st.org':
         for node in main.xpath('./p[contains(concat(" ",normalize-space(@class)," ")," wp-block-paragraph ")]'):
             links=node.xpath('./a[@href]');value=' '.join(node.text_content().split())
@@ -138,6 +165,19 @@ def drop_editorial_widgets(main,host):
             headings=node.xpath('./h5')
             if len(headings)==1 and ' '.join(headings[0].text_content().split())=='Поделиться:':node.drop_tree()
     if host=='netology.ru':
+        for node in main.xpath('.//div[contains(concat(" ",normalize-space(@class)," ")," ntlgy-author ")]'):
+            paragraphs=node.xpath('./p')
+            portraits=node.xpath('./figure[contains(concat(" ",normalize-space(@class)," ")," ntlgy-author-portrait ")][.//img]')
+            if (len(paragraphs)==2 and len(portraits)==1 and not node.xpath('.//blockquote|.//pre|.//cite')
+                    and paragraphs[0].xpath('./strong[normalize-space()]')
+                    and ''.join(node.text_content().split())==''.join(''.join(p.text_content().split()) for p in paragraphs)):node.drop_tree()
+        for node in main.xpath('./p'):
+            links=node.xpath('./a[@href]')
+            residual=' '.join(''.join(node.xpath('.//text()[not(ancestor::a)]')).split())
+            if len(node)==1 and len(links)==1 and residual in {'Программа обучения:','Программа обучения: «»','Программа обучения: ""'}:
+                target=urlsplit(links[0].get('href'))
+                if (target.hostname or host)==host and target.path.startswith('/programs/'):node.drop_tree();continue
+            if node.getparent() is not None and pure_related_links(node,host,('Читать ещё:','Читать еще:','Читать ещё: «»','Читать еще: «»','Читать ещё: ""','Читать еще: ""')):node.drop_tree()
         for node in main.xpath('.//*[contains(concat(" ",normalize-space(@class)," ")," ntlgy-course--wide ")]'):
             if any((urlsplit(a.get('href','')).hostname or host)==host and urlsplit(a.get('href','')).path.startswith('/programs/')
                    and ' '.join(a.text_content().split())=='Узнать больше' for a in node.xpath('.//a')):node.drop_tree()
@@ -343,6 +383,8 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False):
         quote_meta['source_incomplete_markers']=['xakep-access-cut'] if host=='xakep.ru' and tree.xpath('//*[contains(concat(" ",normalize-space(@class)," ")," bdaia-post-content ")]//*[@id="xakepcut" and contains(concat(" ",normalize-space(@class)," ")," xakepcut ")]') else []
         quote_meta['source_credits']=drop_editorial_widgets(main,host) if main is not None else None
         quote_meta.update(restore_legacy_html_blocks(main,host) if main is not None else dict(preserved_legacy_html_blocks=None,unresolved_legacy_html_figures=None))
+        restored=restore_label_tables(main,host) if main is not None else 0
+        if restored:quote_meta['preserved_label_tables']=restored
         quote_meta.update(restore_editorial_blocks(main,host) if main is not None else dict(preserved_editorial_callouts=None,preserved_unattributed_quotes=None,quote_review_blocks=None,unresolved_mixed_figures=None))
     title=choose_title(tree,main,host)
     title_text=render(title).strip().removeprefix('# ') if title is not None else ''
