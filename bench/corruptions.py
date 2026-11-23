@@ -124,3 +124,35 @@ def neutral_typography(text: str) -> tuple[str, str]:
     """Нейтральность только для norm; не для оценки авторской типографики."""
     norm = markdown(text).norm
     return norm, 'Тождественная нормализованная версия; контроль только для norm, не для raw-clean'
+
+
+QUANTITY_VERSION='quantity-v2'
+QUANTITY_UNITS=r'дней|часов|минут|рублей|процентов|лет|метров|месяцев|сотрудников|человек|случаев|пользователей'
+QUANTITY_PATTERN=re.compile(r'\b\d+(?=[ \u00a0](?:'+QUANTITY_UNITS+r')\b)')
+QUANTITY_GENITIVE={'из','от','до','около','более','менее','свыше','порядка','после','для','без','вместо','у',
+                   'в течение','в продолжение','на протяжении'}
+QUANTITY_ACCUSATIVE={'через','за','на','в'}
+QUANTITY_GOVERNOR=re.compile(r'\b('+ '|'.join(re.escape(v) for v in sorted(QUANTITY_GENITIVE|QUANTITY_ACCUSATIVE,key=len,reverse=True))+r')[ \u00a0]+$',re.I)
+
+
+def quantity_form(text: str,position: int) -> str | None:
+    """Только явно заданное локальное управление; через границу строки не угадываем."""
+    match=QUANTITY_GOVERNOR.search(text[max(0,position-80):position])
+    if not match:return None
+    return 'нескольких' if match[1].casefold() in QUANTITY_GENITIVE else 'несколько'
+
+
+def mutate_quantity_v2(text: str,dose: str,seed: int) -> Mutation:
+    """Числовая конкретика с ограниченным контролем падежа. Историческая v1 неизменна."""
+    if dose not in DOSES:raise ValueError('Неизвестная доза')
+    candidates=[]
+    for match in QUANTITY_PATTERN.finditer(text):
+        if int(match[0])==0:continue
+        form=quantity_form(text,match.start())
+        if form:candidates.append((match,form))
+    n=min(len(candidates),max(1,round(len(candidates)*min(1,DOSES[dose]*10))))
+    chosen=random.Random(seed).sample(candidates,n);result=text
+    for match,form in sorted(chosen,key=lambda item:item[0].start(),reverse=True):
+        result=result[:match.start()]+form+result[match.end():]
+    return Mutation(result,len(chosen),len(candidates),'specificity',dose,seed,version=QUANTITY_VERSION,
+                    reason='explicit-local-governor; semantic-and-human-validation-pending' if chosen else 'unsupported-context-or-no-count')
