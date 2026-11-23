@@ -109,6 +109,8 @@ def restore_legacy_html_blocks(main,host):
 def drop_editorial_widgets(main,host):
     source_credits=[]
     if host=='te-st.org':
+        for node in main.xpath('.//div[contains(concat(" ",normalize-space(@class)," ")," testimonial ")]'):
+            if any(cite.text_content().strip() for cite in node.xpath('.//cite')):node.drop_tree()
         for node in main.xpath('.//blockquote'):
             links=node.xpath('.//a[@href]')
             label=' '.join(''.join(node.xpath('.//text()[not(ancestor::a)]')).split()).casefold()
@@ -169,6 +171,11 @@ def drop_editorial_widgets(main,host):
                             and urlsplit(a.get('href','')).path.startswith('/podcast/')
                             and 'nofollow' in a.get('rel','').split() for a in links)):
                 source_credits.append(dict(text=value,links=[a.get('href') for a in links]));node.drop_tree()
+        paragraphs=main.xpath('./p[last()]')
+        if paragraphs:
+            node=paragraphs[0];strong=node.xpath('./strong');value=' '.join(node.text_content().split())
+            if (node.getnext() is None and len(node)==1 and len(strong)==1
+                    and value==' '.join(strong[0].text_content().split()) and value.startswith('На фото:')):node.drop_tree()
     if host=='liveinternet.ru':
         nodes=main.xpath('./p[1]')
         if nodes:

@@ -370,4 +370,51 @@ class HTMLStructureTest(unittest.TestCase):
         self.assertIsNone(meta['source_credits'])
 
 
+
+
+
+    def test_testimonial_with_cite_removed_before_quote_restore_and_code_count(self):
+        source='<html><body><div class="entry-content"><p>Начало.</p><div class="box testimonial"><blockquote><p>Чужой отзыв.</p></blockquote><pre>foreign_code()</pre><cite><span>Автор отзыва</span></cite></div>Продолжение.<div class="testimonial"><img><p><cite>Подпись изображения</cite></p></div>Конец.<blockquote><p>Авторская формула.</p></blockquote><pre>own_code()</pre></div></body></html>'
+        old,_=html_article_structure_candidate(source,'https://te-st.org/example')
+        out,meta=html_article_editorial_candidate(source,'https://te-st.org/example')
+        self.assertIn('Автор отзыва',old.raw);self.assertIn('Подпись изображения',old.raw)
+        for value in ('Начало.','Продолжение.','Конец.','Авторская формула.'):
+            self.assertIn(value,out.raw)
+        for value in ('Чужой отзыв','Автор отзыва','Подпись изображения','foreign_code'):
+            self.assertNotIn(value,out.raw)
+        self.assertEqual(out.code_blocks,1);self.assertEqual(meta['preserved_unattributed_quotes'],1)
+
+    def test_testimonial_requires_known_host_div_role_and_nonempty_cite(self):
+        blocks=['<div class="testimonial"><p>Авторский пример.</p></div>',
+                '<div class="testimonial"><p>Авторский пример.</p><cite> </cite></div>',
+                '<div class="testimonial-other"><p>Авторский пример.</p><cite>Подпись</cite></div>',
+                '<section class="testimonial"><p>Авторский пример.</p><cite>Подпись</cite></section>']
+        for block in blocks:
+            out,_=html_article_editorial_candidate('<html><body><div class="entry-content">'+block+'</div></body></html>','https://te-st.org/example')
+            self.assertIn('Авторский пример.',out.raw)
+        source='<html><body><div class="entry-content"><div class="testimonial"><p>Авторский пример.</p><cite>Подпись</cite></div></div></body></html>'
+        out,_=html_article_editorial_candidate(source,'https://example.org/example')
+        self.assertIn('Авторский пример.',out.raw)
+
+    def test_zavtra_last_strong_photo_caption_removed_with_tail_only_in_v6(self):
+        source='<html><body><div class="article__content"><p>Авторская проза.</p><p><strong>На фото: <i>подпись иллюстрации</i>.</strong></p>Продолжение.</div></body></html>'
+        old,_=html_article_structure_candidate(source,'https://zavtra.ru/example')
+        out,_=html_article_editorial_candidate(source,'https://zavtra.ru/example')
+        self.assertIn('На фото:',old.raw);self.assertNotIn('На фото:',out.raw)
+        self.assertIn('Авторская проза.',out.raw);self.assertIn('Продолжение.',out.raw)
+
+    def test_photo_caption_requires_terminal_wholly_strong_paragraph_and_known_host(self):
+        blocks=['<p><strong>На фото: автор рассуждает.</strong></p><p>Ещё проза.</p>',
+                '<p>На фото: автор рассуждает.</p>',
+                '<p>Введение. <strong>На фото: автор рассуждает.</strong></p>',
+                '<p><strong>На фото: автор рассуждает.</strong><span>Продолжение.</span></p>',
+                '<div><p><strong>На фото: автор рассуждает.</strong></p></div>']
+        for block in blocks:
+            out,_=html_article_editorial_candidate('<html><body><div class="article__content">'+block+'</div></body></html>','https://zavtra.ru/example')
+            self.assertIn('На фото:',out.raw)
+        source='<html><body><div class="article__content"><p><strong>На фото: автор рассуждает.</strong></p></div></body></html>'
+        out,_=html_article_editorial_candidate(source,'https://example.org/example')
+        self.assertIn('На фото:',out.raw)
+
+
 if __name__=='__main__':unittest.main()
