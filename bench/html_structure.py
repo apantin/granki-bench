@@ -107,6 +107,14 @@ def restore_legacy_html_blocks(main,host):
 
 
 def drop_editorial_widgets(main,host):
+    source_credits=[]
+    if host=='te-st.org':
+        for node in main.xpath('.//blockquote'):
+            links=node.xpath('.//a[@href]')
+            label=' '.join(''.join(node.xpath('.//text()[not(ancestor::a)]')).split()).casefold()
+            if label in {'еще по теме:','ещё по теме:'} and links and all(
+                    (urlsplit(a.get('href','')).hostname or host).removeprefix('www.')==host
+                    and re.match(r'^/\d{4}/\d{2}/\d{2}/',urlsplit(a.get('href','')).path) for a in links):node.drop_tree()
     if host=='journal.tinkoff.ru':
         for node in main.xpath('./div[contains(concat(" ",normalize-space(@class)," ")," article-author ") and @itemprop="author"][.//*[@itemprop="name"]]'):
             if node.xpath('.//a[contains(concat(" ",normalize-space(@class)," ")," article-author__link ")]'):node.drop_tree()
@@ -151,12 +159,23 @@ def drop_editorial_widgets(main,host):
             gallery.drop_tree()
         for node in main.xpath('.//*[contains(concat(" ",normalize-space(@class)," ")," zen_inv ")]'):
             if any((urlsplit(a.get('href','')).hostname or '')=='zen.yandex.ru' for a in node.xpath('.//a')):node.drop_tree()
+        paragraphs=main.xpath('./p[last()]')
+        if paragraphs:
+            node=paragraphs[0];strong=node.xpath('./strong');value=' '.join(node.text_content().split())
+            links=node.xpath('.//a[@href]')
+            if (node.getnext() is None and len(node)==1 and len(strong)==1
+                    and value==' '.join(strong[0].text_content().split()) and re.match(r'^Из эфира на\b',value,re.I)
+                    and any((urlsplit(a.get('href','')).hostname or '').removeprefix('www.')=='radiokp.ru'
+                            and urlsplit(a.get('href','')).path.startswith('/podcast/')
+                            and 'nofollow' in a.get('rel','').split() for a in links)):
+                source_credits.append(dict(text=value,links=[a.get('href') for a in links]));node.drop_tree()
     if host=='liveinternet.ru':
         nodes=main.xpath('./p[1]')
         if nodes:
             node=nodes[0];bold=node.xpath('./b')
             if (len(bold)==1 and ''.join(node.text_content().split())==''.join(bold[0].text_content().split())
                     and ' '.join(node.text_content().split()).startswith('Настроение сейчас')):node.drop_tree()
+    return source_credits
 
 
 def pure_related_links(node,host,labels):
@@ -303,7 +322,7 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False):
         # Отсутствие маркера не доказывает полноту. Наличие — отдельный отказ
         # источника, который нельзя исправить обработкой доступного отрывка.
         quote_meta['source_incomplete_markers']=['xakep-access-cut'] if host=='xakep.ru' and tree.xpath('//*[contains(concat(" ",normalize-space(@class)," ")," bdaia-post-content ")]//*[@id="xakepcut" and contains(concat(" ",normalize-space(@class)," ")," xakepcut ")]') else []
-        if main is not None:drop_editorial_widgets(main,host)
+        quote_meta['source_credits']=drop_editorial_widgets(main,host) if main is not None else None
         quote_meta.update(restore_legacy_html_blocks(main,host) if main is not None else dict(preserved_legacy_html_blocks=None,unresolved_legacy_html_figures=None))
         quote_meta.update(restore_editorial_blocks(main,host) if main is not None else dict(preserved_editorial_callouts=None,preserved_unattributed_quotes=None,quote_review_blocks=None,unresolved_mixed_figures=None))
     title=choose_title(tree,main,host)

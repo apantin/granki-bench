@@ -333,4 +333,41 @@ class HTMLStructureTest(unittest.TestCase):
         self.assertIn('Текст виджета Описание.',out.raw);self.assertIn('Продолжение.',out.raw)
 
 
+    def test_teplitsa_related_navigation_is_removed_before_restoring_editorial_quotes(self):
+        source='<html><body><div class="entry-content"><p>Основная проза.</p><blockquote><p>Еще по теме: <a href="https://te-st.org/2020/02/03/synthetic/">Соседняя статья</a></p></blockquote>Продолжение.<blockquote><p>Ещё по теме: <a href="/2019/04/05/example/">Другая статья</a></p></blockquote><blockquote><p>Авторская врезка.</p><pre>пример кода</pre></blockquote></div></body></html>'
+        out,meta=html_article_editorial_candidate(source,'https://te-st.org/2021/01/02/post/')
+        for value in ('Соседняя статья','Другая статья','по теме:'):self.assertNotIn(value,out.raw)
+        for value in ('Основная проза.','Продолжение.','Авторская врезка.','[КОД]'):self.assertIn(value,out.raw)
+        self.assertEqual(meta['quote_review_blocks'],1);self.assertEqual(out.code_blocks,1)
+
+    def test_teplitsa_related_words_with_authored_prose_or_external_link_are_preserved(self):
+        source='<html><body><article itemprop="articleBody"><blockquote><p>Еще по теме: <a href="/2020/01/02/example/">Источник</a> поясняет авторскую мысль.</p></blockquote><blockquote><p>Еще по теме: <a href="https://example.org/2020/01/02/other/">Внешняя ссылка</a></p></blockquote></article></body></html>'
+        out,meta=html_article_editorial_candidate(source,'https://te-st.org/2021/01/02/post/')
+        self.assertIn('Источник поясняет авторскую мысль.',out.raw);self.assertIn('Внешняя ссылка',out.raw)
+        self.assertEqual(meta['quote_review_blocks'],2)
+
+    def test_radio_credit_leaves_prose_and_preserves_provenance_in_metadata(self):
+        source='<html><body><div class="article__content"><p>Авторская проза.</p><p><strong>Из эфира на <a href="https://radiokp.ru/podcast/synthetic/" rel="nofollow noopener">радио «Пример»</a></strong></p>Послесловие.</div></body></html>'
+        old,old_meta=html_article_structure_candidate(source,'https://zavtra.ru/example')
+        out,meta=html_article_editorial_candidate(source,'https://zavtra.ru/example')
+        self.assertIn('Из эфира',old.raw);self.assertNotIn('source_credits',old_meta)
+        self.assertNotIn('Из эфира',out.raw);self.assertIn('Авторская проза.',out.raw);self.assertIn('Послесловие.',out.raw)
+        self.assertEqual(meta['source_credits'],[dict(text='Из эфира на радио «Пример»',links=['https://radiokp.ru/podcast/synthetic/'])])
+
+    def test_radio_credit_words_outside_known_terminal_role_remain_author_text(self):
+        variants=[
+            '<p><strong>Из эфира на <a href="https://radiokp.ru/podcast/synthetic/" rel="nofollow">радио</a></strong></p><p>Следующий авторский абзац.</p>',
+            '<p>Из эфира на <a href="https://radiokp.ru/podcast/synthetic/" rel="nofollow">радио</a> взят авторский пример.</p>',
+            '<p><strong>Из эфира на <a href="https://example.org/podcast/synthetic/" rel="nofollow">другом сайте</a></strong></p>',
+            '<p><strong>Из эфира на <a href="https://radiokp.ru/podcast/synthetic/">радио без роли ссылки</a></strong></p>',
+        ]
+        for body in variants:
+            out,meta=html_article_editorial_candidate('<html><body><div class="article__content">'+body+'</div></body></html>','https://zavtra.ru/example')
+            self.assertIn('Из эфира',out.raw);self.assertEqual(meta['source_credits'],[])
+
+    def test_source_credit_status_is_unknown_without_explicit_body(self):
+        _,meta=html_article_editorial_candidate('<html><body><p>Обычный текст. '*20+'</p></body></html>','https://example.org/post')
+        self.assertIsNone(meta['source_credits'])
+
+
 if __name__=='__main__':unittest.main()
