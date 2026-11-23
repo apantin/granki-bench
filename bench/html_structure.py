@@ -5,7 +5,7 @@
 from __future__ import annotations
 import re
 from urllib.parse import urlsplit
-from .cleaning import HTML_STRUCTURE_VERSION,HTML_EDITORIAL_VERSION,_html_article,extracted_text
+from .cleaning import HTML_STRUCTURE_VERSION,HTML_EDITORIAL_VERSION,HTML_CONTENT_VERSION,_html_article,extracted_text
 
 
 def decode(content: bytes | str) -> str:
@@ -35,11 +35,38 @@ def code_table_blocks(node):
     return []
 
 
-def render(node,depth=0):
+def table_grid(node):
+    """Только прямоугольные текстовые ячейки, без угадывания заголовков."""
+    rows=node.xpath('./tr|./thead/tr|./tbody/tr|./tfoot/tr')
+    if len(rows)<2:return None
+    if any(n.tag not in {'caption','tr','thead','tbody','tfoot'} for n in node):return None
+    if any(n.tag!='tr' for group in node if group.tag in {'thead','tbody','tfoot'} for n in group):return None
+    cells=[list(row) for row in rows]
+    if len(cells[0])<2 or any(len(row)!=len(cells[0]) for row in cells):return None
+    if any(n.tag not in {'td','th'} or any(n.get(k,'1')!='1' for k in ('rowspan','colspan')) for row in cells for n in row):return None
+    captions=node.xpath('./caption')
+    if len(captions)>1 or captions and node[0] is not captions[0]:return None
+    content=[n for row in cells for n in row]+captions
+    allowed={'p','a','span','b','strong','em','i','u','s','small','abbr','br'}
+    if any(not isinstance(n.tag,str) or n.tag not in allowed for cell in content for n in cell.iterdescendants()):return None
+    # Запрещаем потерю текста между строками/ячейками и их перестановку.
+    expected=captions+[n for row in cells for n in row]
+    if ''.join(node.text_content().split())!=''.join(''.join(n.text_content().split()) for n in expected):return None
+    def value(cell):return ' '.join(render(cell).split()).replace('\\','\\\\').replace('|','\\|')
+    lines=['| '+' | '.join(value(cell) for cell in row)+' |' for row in cells]
+    if all(n.tag=='th' for n in cells[0]):lines.insert(1,'| '+' | '.join('---' for _ in cells[0])+' |')
+    if captions:lines.insert(0,value(captions[0]))
+    return '\n'.join(lines)
+
+
+def render(node,depth=0,*,preserve_tables=False):
     """Хвост child.tail добавляет родитель: удаление блока не съедает продолжение."""
     tag=node.tag
     blocks=code_table_blocks(node)
     if blocks:return '\n\n'+'\n\n'.join('[КОД]' for _ in blocks)+'\n\n'
+    if tag=='table' and preserve_tables:
+        grid=table_grid(node)
+        return '\n\n'+grid+'\n\n' if grid is not None else ''
     if not isinstance(tag,str) or tag in SKIP:return ''
     if tag=='pre':return '\n\n[КОД]\n\n'
     if tag=='br':return '\n'
@@ -49,7 +76,7 @@ def render(node,depth=0):
     for child in node:
         tail=inline_space(child.tail)
         if tag in {'ul','ol'} and not tail.strip():tail=''
-        content+=render(child,child_depth)+tail
+        content+=render(child,child_depth,preserve_tables=preserve_tables)+tail
     if tag in {'h1','h2','h3','h4','h5','h6'}:
         value=' '.join(content.split())
         return '\n\n'+'#'*int(tag[1])+' '+value+'\n\n' if value else ''
@@ -125,6 +152,36 @@ def restore_label_tables(main,host):
         for node in labels:node.tag='li';node.tail=None
         restored+=1
     return restored
+
+
+def content_table_status(main):
+    preserved=0;unresolved=0
+    for node in main.xpath('.//table'):
+        parents=[]
+        for parent in node.iterancestors():
+            if parent is main:break
+            parents.append(parent)
+        if any(n.tag in SKIP for n in parents) or code_table_blocks(node):continue
+        if table_grid(node) is None:unresolved+=1
+        else:preserved+=1
+    return dict(preserved_data_tables=preserved,unresolved_data_tables=unresolved)
+
+
+def drop_content_ads(main,host):
+    removed=0
+    if host not in {'vc.ru','tjournal.ru'}:return removed
+    for node in main.xpath('.//div[contains(concat(" ",normalize-space(@class)," ")," propaganda ")]'):
+        footers=node.xpath('./div[contains(concat(" ",normalize-space(@class)," ")," propaganda__footer ")]')
+        if len(footers)!=1:continue
+        footer=footers[0];links=footer.xpath('./a[contains(concat(" ",normalize-space(@class)," ")," propaganda__link ")]')
+        if len(footer)!=2 or len(links)!=2:continue
+        expected=[('/business','Купить рекламу'),('/plus','Отключить')]
+        if any((urlsplit(a.get('href','')).hostname or host)!=host or
+               (urlsplit(a.get('href','')).path,' '.join(a.text_content().split()))!=pair for a,pair in zip(links,expected)):continue
+        if ''.join(node.text_content().split())!=''.join(''.join(a.text_content().split()) for a in links):continue
+        if any(n.tag not in {'div','a','span'} for n in node.iterdescendants()):continue
+        node.drop_tree();removed+=1
+    return removed
 
 
 def drop_editorial_widgets(main,host):
@@ -363,8 +420,9 @@ def choose_title(tree,main,host):
     return nodes[0] if len(nodes)==1 else None
 
 
-def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False):
+def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,preserve_content=False):
     from lxml import html
+    if preserve_content:preserve_editorial=True
     source=decode(content)
     fallback,meta=_html_article(source,url,flatten_inline=True,preserve_extracted=True)
     tree=html.fromstring(source);host=(urlsplit(url).hostname or '').removeprefix('www.')
@@ -386,6 +444,9 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False):
         restored=restore_label_tables(main,host) if main is not None else 0
         if restored:quote_meta['preserved_label_tables']=restored
         quote_meta.update(restore_editorial_blocks(main,host) if main is not None else dict(preserved_editorial_callouts=None,preserved_unattributed_quotes=None,quote_review_blocks=None,unresolved_mixed_figures=None))
+    if preserve_content:
+        quote_meta['removed_ad_widgets']=drop_content_ads(main,host) if main is not None else None
+        quote_meta.update(content_table_status(main) if main is not None else dict(preserved_data_tables=None,unresolved_data_tables=None))
     title=choose_title(tree,main,host)
     title_text=render(title).strip().removeprefix('# ') if title is not None else ''
     if main is None:
@@ -394,7 +455,7 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False):
         if title_text and not any(line.lstrip('# ').strip()==title_text for line in clean.raw.splitlines()):
             clean=extracted_text('# '+title_text+'\n\n'+clean.raw,code_blocks=fallback.code_blocks)
     else:
-        text=render(main).strip()
+        text=render(main,preserve_tables=preserve_content).strip()
         prefix=supplementary_blocks(tree,main,host)
         if preserve_editorial and method=='profile:snob-article-text':
             leads=main.getparent().xpath('./hgroup/h3[contains(concat(" ",normalize-space(@class)," ")," lead ")]')
@@ -404,5 +465,6 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False):
         if title_text and main is not title and main not in title.iterancestors():
             text='# '+title_text+'\n\n'+text
         clean=extracted_text(text,code_blocks=code_count(main))
-    return clean,meta|quote_meta|dict(clean_version=HTML_EDITORIAL_VERSION if preserve_editorial else HTML_STRUCTURE_VERSION,extraction_method=method,
+    version=HTML_CONTENT_VERSION if preserve_content else HTML_EDITORIAL_VERSION if preserve_editorial else HTML_STRUCTURE_VERSION
+    return clean,meta|quote_meta|dict(clean_version=version,extraction_method=method,
                            title_source='DOM-h1' if title_text else 'not-found',quality_review='pending')
