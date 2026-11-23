@@ -23,6 +23,7 @@ from bench.cleaning import VERSION,html_article,text_features
 from bench.corpus_selection import deduplicate,quota,group_hashes
 from index import BASE,HTTP,candidates
 from extraction import author_identity,metadata_exclusion,response_body
+from bench.provenance import rsdn_primary_header
 
 
 def canonical(url):
@@ -36,6 +37,8 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
         raise ValueError('Рабочие тексты должны находиться за пределами открытого репозитория')
     if config['clean_version']!=VERSION:
         raise ValueError('Версия очистки не совпала с рецептом')
+    provenance_policy=config.get('provenance_policy')
+    if 'provenance_policy' in config and provenance_policy!='rsdn-primary-header-v1':raise ValueError('Неизвестная политика происхождения')
     limits=config.get('candidate_limits',{})
     if set(limits)-{r['domain'] for r in domains} or any(type(v) is not int or not 1<=v<=config['max_records'] for v in limits.values()):
         raise ValueError('Неверный доменный предел кандидатов')
@@ -80,8 +83,16 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                 try:
                     compressed=http.get(BASE+record['filename'],int(record['offset']),int(record['length']))
                     payload=response_body(compressed)
+                    provenance=rsdn_primary_header(payload,record['url']) if provenance_policy else None
+                    if provenance and provenance['translation_status']=='explicit-translation':
+                        counts['primary_header_translation']+=1;continue
                     clean,metadata=html_article(payload,record['url'])
                     author=author_identity(record['url'],metadata)
+                    members=None
+                    if provenance and provenance['author_status']!='not-applicable':
+                        members=sorted({author_identity(record['url'],{'author':a}) for a in provenance['authors']}) or ['domain:rsdn.org']
+                        author='; '.join(members)
+                        counts['author_provenance:'+provenance['author_status']]+=1
                     if metadata_exclusion(author):
                         counts['metadata_spam']+=1;continue
                     features=text_features(clean.norm)
@@ -94,12 +105,14 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                     folder.mkdir(parents=True,exist_ok=True)
                     path,raw_path=folder/(rid+'.md'),folder/(rid+'.raw.md')
                     path.write_text(clean.norm);raw_path.write_text(clean.raw)
-                    docs.append(dict(id=rid,url=url,snapshot=snapshot,domain=domain['domain'],
+                    doc=dict(id=rid,url=url,snapshot=snapshot,domain=domain['domain'],
                                      subgenre=domain['subgenre'],author=author,
                                      sha256=hashlib.sha256(path.read_bytes()).hexdigest(),text=clean.norm,
                                      raw_sha256=hashlib.sha256(raw_path.read_bytes()).hexdigest(),
                                      path=str(path),raw_path=str(raw_path),record=record,
-                                     warc_sha256=hashlib.sha256(compressed).hexdigest(),author_method=metadata.get('author_method')))
+                                     warc_sha256=hashlib.sha256(compressed).hexdigest(),author_method=metadata.get('author_method'))
+                    if members is not None:doc.update(authors=members,author_method='rsdn-primary-header-v1:'+provenance['author_status'])
+                    docs.append(doc)
                     counts['accepted']+=1
                 except Exception as exc:
                     counts['error:'+type(exc).__name__]+=1

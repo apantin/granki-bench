@@ -8,6 +8,13 @@ spec.loader.exec_module(guard)
 
 
 class NormGuardTest(unittest.TestCase):
+    def test_only_named_provenance_policy_is_allowed(self):
+        import json
+        def check(policy):return guard.norm_problems('norms/article-blog/config.json',json.dumps(dict(provenance_policy=policy)).encode())
+        self.assertEqual(check('rsdn-primary-header-v1'),[])
+        for policy in (None,True,'private-file','unknown'):
+            self.assertTrue(check(policy))
+
     def test_domain_limits_do_not_publish_personal_profiles(self):
         import json
         def check(value):return guard.norm_problems('norms/article-blog/config.json',json.dumps({'candidate_limits':value}).encode())
