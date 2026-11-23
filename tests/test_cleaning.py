@@ -4,6 +4,24 @@ from bench.cleaning import markdown, typography, words
 
 
 class CleaningTest(unittest.TestCase):
+    @unittest.skipUnless(importlib.util.find_spec('lxml'),'Не установлены зависимости HTML')
+    def test_rsdn_candidate_uses_field_boundaries(self):
+        from lxml import html
+        from bench.cleaning import rsdn_author_header_candidate
+        source='<html><body><h5><span class="title">Автор: </span><span class="value"><a>Иван Примеров</a></span><br><span class="title">Источник: </span><span class="value">Журнал</span></h5></body></html>'
+        self.assertEqual(rsdn_author_header_candidate(html.fromstring(source)),'Иван Примеров')
+        source='<html><body><h5><span class="title">Авторы: </span><span class="value"><b>Анна Примерова, Борис Тестов</b></span><span class="title">Опубликовано: </span><span class="value">2007</span></h5></body></html>'
+        self.assertEqual(rsdn_author_header_candidate(html.fromstring(source)),'Анна Примерова, Борис Тестов')
+
+    @unittest.skipUnless(importlib.util.find_spec('lxml'),'Не установлены зависимости HTML')
+    def test_rsdn_candidate_refuses_missing_or_ambiguous_boundaries(self):
+        from lxml import html
+        from bench.cleaning import rsdn_author_header_candidate
+        for source in ('<body><p>Автор: Автор Без Завершения</p></body>',
+                       '<body><span class="title">Автор: </span><span class="value">Анна Примерова<br>Организация</span></body>',
+                       '<body><span class="title">Автор: </span><span class="value">Анна Примерова</span><span class="title">Автор: </span><span class="value">Борис Тестов</span></body>'):
+            self.assertIsNone(rsdn_author_header_candidate(html.fromstring(source)))
+
     @unittest.skipUnless(importlib.util.find_spec('trafilatura'),'Не установлены зависимости сбора данных')
     def test_inline_candidate_preserves_words_order_and_blocks(self):
         from bench.cleaning import html_article_inline_candidate,HTML_INLINE_VERSION,VERSION

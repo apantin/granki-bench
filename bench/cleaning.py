@@ -62,6 +62,30 @@ def html_article_inline_candidate(content: bytes | str, url: str = '') -> tuple[
     return clean, meta | {'clean_version': HTML_INLINE_VERSION}
 
 
+def rsdn_author_header_candidate(tree) -> str | None:
+    """Кандидат авторства: границы полей вместо склеенного text_content.
+
+    Не включён в clean-v3/v4 и не меняет прежние рецепты корпуса.
+    При неоднозначном или незавершённом заголовке возвращает None.
+    Возвращает поле страницы, не каноническую личность: организация
+    или соавторство внутри значения требуют отдельной проверки.
+    """
+    labels = [node for node in tree.xpath('//span[contains(concat(" ",normalize-space(@class)," ")," title ")]')
+              if ' '.join(''.join(node.itertext()).split()).casefold() in {'автор:', 'авторы:'}]
+    if len(labels) != 1:
+        return None
+    value = labels[0].getnext()
+    if value is None or value.tag != 'span' or 'value' not in value.get('class', '').split():
+        return None
+    # Разрыв может отделять организацию либо другого соавтора. Не угадываем.
+    if value.xpath('.//br|.//script|.//style'):
+        return None
+    name = ' '.join(' '.join(value.itertext()).split())
+    if not name or len(name) > 200:
+        return None
+    return name
+
+
 def _html_article(content: bytes | str, url: str, *, flatten_inline: bool) -> tuple[CleanText, dict]:
     from lxml import html as lhtml
     from trafilatura import extract
