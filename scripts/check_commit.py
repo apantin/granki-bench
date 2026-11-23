@@ -87,7 +87,7 @@ def norm_problems(path: str, data: bytes) -> list[str]:
                    'index_method', 'candidate_limit', 'candidate_limits', 'max_blocks', 'subgenres', 'dependencies', 'provenance_policy'}
         if not isinstance(config, dict) or set(config) - allowed:
             return ['недопустимые поля конфигурации нормы']
-        if 'provenance_policy' in config and config['provenance_policy']!='rsdn-primary-header-v1':
+        if 'provenance_policy' in config and config['provenance_policy'] not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2'}:
             return ['неизвестная политика происхождения нормы']
         limits=config.get('candidate_limits',{})
         if not isinstance(limits,dict) or any(not re.fullmatch(r'[a-z0-9.-]+\.[a-z]{2,}',k) or
