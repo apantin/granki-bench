@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 VERSION = 'clean-v3'
 HTML_INLINE_VERSION = 'clean-v4-inline-candidate'
+HTML_STRUCTURE_VERSION = 'clean-v5-structure-candidate'
 WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё]+(?:[-’'][A-Za-zА-Яа-яЁё]+)*|\d+(?:[.,]\d+)?")
 
 
@@ -60,6 +61,12 @@ def html_article_inline_candidate(content: bytes | str, url: str = '') -> tuple[
     """Отдельный кандидат: сохраняет порядок inline-текста, не меняет clean-v3."""
     clean, meta = _html_article(content, url, flatten_inline=True)
     return clean, meta | {'clean_version': HTML_INLINE_VERSION}
+
+
+def html_article_structure_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
+    """Отдельный DOM-кандидат: не включён в clean-v3 и рецепты нормы."""
+    from .html_structure import extract_candidate
+    return extract_candidate(content, url)
 
 
 def rsdn_author_header_candidate(tree) -> str | None:
