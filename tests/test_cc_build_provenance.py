@@ -20,6 +20,7 @@ with patch.object(sys, 'path', [str(CC), *sys.path]):
 V5 = 'rsdn-primary-header-profile-v2'
 V6 = 'rsdn-primary-header-profile-translation-v3'
 V7 = 'primary-header-rsdn-habr-v4'
+V8 = 'primary-source-rsdn-habr-v5'
 
 
 class BuildProvenanceTest(unittest.TestCase):
@@ -104,6 +105,34 @@ class BuildProvenanceTest(unittest.TestCase):
         for field in ['authors','author','author_quota_keys','sha256','raw_sha256']:
             self.assertEqual(before[0][field],after[0][field])
         self.assertTrue(after[0]['author_method'].startswith(V7+':'))
+
+    def test_v8_all_confirmed_habr_roles_are_rejected_before_cleaning_only_in_new_policy(self):
+        def page(body,label=''):return '<body><article class="post post_full"><div class="post__wrapper"><h1>Тест</h1>'+label+'<div id="post-content-body">'+body+'</div></div></article></body>'
+        label='<ul class="post__marks"><li class="inline-list__item_post-type"><span class="post__type-label" title="Перевод">Перевод</span></li></ul>'
+        variants=[(page('Авторский текст.',label),'explicit-translation','legacy-header'),
+                  (page('<p>Предлагаю перевод интересной статьи о тестовом формате.</p>'),'explicit-translation','opening-declaration'),
+                  (page('<p>Текст.</p><p>P.S. Оригинал тут https://example.org/original, не могу опубликовать топик-ссылку.</p>'),'explicit-reprint','closing-repost-declaration')]
+        for source,status,role in variants:
+            with self.subTest(role=role):
+                old,_,_,calls=self.run_build(source,V7,'habr.com');self.assertEqual((len(old),calls),(1,1))
+                new,summary,groups,calls=self.run_build(source,V8,'habr.com');self.assertEqual((new,groups,calls),([],[],0))
+                self.assertEqual(summary['habr_source:'+status],1);self.assertEqual(summary['habr_source_role:'+role],1)
+                self.assertNotIn('primary_header_translation_without_author',summary)
+
+    def test_v8_keeps_unknown_and_mixed_sources_outside_explicit_gate(self):
+        for source in ['<body><h1>Пример</h1><p>Перевод термина.</p></body>',
+                       '<body><article class="post post_full"><div class="post__wrapper"><h1>Пример</h1><div id="post-content-body"><p>Предлагаю перевод интересной статьи с моими комментариями.</p></div></div></article></body>']:
+            before,_,before_groups,_=self.run_build(source,V7,'habr.com');after,summary,groups,calls=self.run_build(source,V8,'habr.com')
+            self.assertEqual((len(after),calls),(1,1));self.assertEqual(before_groups,groups)
+            self.assertFalse(any(k.startswith('habr_source:') for k in summary))
+            for field in ['sha256','raw_sha256','author']:self.assertEqual(before[0][field],after[0][field])
+
+    def test_v8_rsdn_translation_and_profile_constraints_stay_unchanged(self):
+        source='<body><h5><span class="title">Перевод:</span><span class="value">Переводчик</span></h5><p>Текст.</p></body>'
+        after,summary,groups,calls=self.run_build(source,V8);self.assertEqual((after,groups,calls),([],[],0));self.assertEqual(summary['primary_header_translation_without_author'],1)
+        source='<body><h5><span class="title">Автор:</span><span class="value"><a href="/account/info/1">Первый Автор</a></span></h5><p>Текст.</p></body>'
+        before,_,before_groups,_=self.run_build(source,V7);after,_,groups,_=self.run_build(source,V8);self.assertEqual(before_groups,groups)
+        for field in ['author','authors','author_quota_keys','sha256','raw_sha256']:self.assertEqual(before[0][field],after[0][field])
 
 
 if __name__=='__main__':
