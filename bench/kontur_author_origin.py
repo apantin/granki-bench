@@ -1,6 +1,7 @@
 """Происхождение имени автора, без изменения прежней очистки и нормы."""
 from copy import deepcopy
 import json
+import re
 import unicodedata
 from urllib.parse import urlsplit
 from .html_structure import decode
@@ -57,3 +58,45 @@ def kontur_author_origin(content: bytes | str,url: str) -> dict:
     after=extract_metadata(masked,default_url=url)
     if getattr(after,'author',None):return unknown('name-survives-preview-removal')
     return result('unbound-preview-credit','organization-article; no-primary-name; preview-removal-clears-author')|dict(preview_byline_count=len(previews),matching_preview_credits=matching)
+
+
+def kontur_coauthors(content: bytes | str,url: str) -> dict:
+    """Явный совместный экспертный кредит для квот; не допуск всего текста."""
+    result=lambda status,role,authors=():dict(status=status,role=role,authors=list(authors))
+    if (urlsplit(url).hostname or '').removeprefix('www.')!='kontur.ru':
+        return result('not-applicable','other-host')
+    from lxml import html
+    source=decode(content)
+    if not source.strip():return result('unresolved','empty-source')
+    tree=html.fromstring(source)
+    headers=tree.xpath('//div['+role('content-block_article-announce')+']')
+    bodies=tree.xpath('//*[@id="ArticleItem"]');titles=tree.xpath('//h1')
+    if (len(headers)!=1 or len(bodies)!=1 or len(titles)!=1
+            or not normalize(titles[0].text_content()) or headers[0] not in titles[0].iterancestors()
+            or headers[0] is bodies[0] or headers[0] in bodies[0].iterancestors()
+            or bodies[0] in headers[0].iterancestors()):
+        return result('unresolved','ambiguous-primary-components')
+    names=headers[0].xpath('.//span['+role('article-announce-autor-block__name')+']')
+    if len(names)!=1 or len(names[0]):return result('unresolved','ambiguous-primary-byline')
+    person=r'[а-яё]+(?:-[а-яё]+)?(?: [а-яё]+(?:-[а-яё]+)?){1,2}'
+    pattern=re.compile('('+person+') и ('+person+'), эксперты системы интернет-отч[её]тности контур\\.экстерн')
+    credits=[]
+    for node in bodies[0].xpath('.//p/em'):
+        match=pattern.fullmatch(normalize(node.text_content()))
+        if match is None:continue
+        paragraph=node.getparent()
+        if (len(node) or node.attrib or paragraph.attrib or len(paragraph)!=1
+                or (paragraph.text or '').strip() or (node.tail or '').strip()):
+            return result('unresolved','mixed-credit-paragraph')
+        # Известные контейнеры публикации; цитаты/таблицы/реклама не кредит автора.
+        allowed={'text','js-mediator-article','lp-forms','lp-styles'}
+        for ancestor in paragraph.iterancestors():
+            if ancestor is bodies[0]:break
+            if ancestor.tag!='div' or set(ancestor.get('class','').split())-allowed:
+                return result('unresolved','credit-outside-publisher-prose')
+        credits.append(match.groups())
+    if not credits:return result('no-explicit-coauthors','no-supported-joint-credit')
+    if (len(credits)!=1 or credits[0][0]==credits[0][1]
+            or normalize(names[0].text_content()) not in credits[0]):
+        return result('unresolved','ambiguous-joint-credit')
+    return result('explicit-coauthors','standalone-primary-expert-credit; quotas-only',sorted(credits[0]))
