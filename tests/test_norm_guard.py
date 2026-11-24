@@ -22,6 +22,7 @@ class NormGuardTest(unittest.TestCase):
         self.assertEqual(check('rsdn-primary-header-profile-v2'),[])
         self.assertEqual(check('rsdn-primary-header-profile-translation-v3'),[])
         self.assertEqual(check('primary-header-rsdn-habr-v4'),[])
+        self.assertEqual(check('primary-source-rsdn-habr-v5'),[])
         for policy in (None,True,'private-file','unknown'):
             self.assertTrue(check(policy))
 
