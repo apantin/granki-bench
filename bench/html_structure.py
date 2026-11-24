@@ -5,7 +5,7 @@
 from __future__ import annotations
 import re
 from urllib.parse import urlsplit
-from .cleaning import HTML_STRUCTURE_VERSION,HTML_EDITORIAL_VERSION,HTML_CONTENT_VERSION,HTML_ROLES_VERSION,HTML_PRE_TABLE_VERSION,HTML_CALLOUT_VERSION,_html_article,extracted_text
+from .cleaning import HTML_STRUCTURE_VERSION,HTML_EDITORIAL_VERSION,HTML_CONTENT_VERSION,HTML_ROLES_VERSION,HTML_PRE_TABLE_VERSION,HTML_CALLOUT_VERSION,HTML_CODE_TABLE_VERSION,_html_article,extracted_text
 
 
 def decode(content: bytes | str) -> str:
@@ -59,12 +59,16 @@ def table_grid(node):
     return '\n'.join(lines)
 
 
-def render(node,depth=0,*,preserve_tables=False,preserve_list_blocks=False):
+def render(node,depth=0,*,preserve_tables=False,preserve_list_blocks=False,preserve_code_tables=False):
     """Хвост child.tail добавляет родитель: удаление блока не съедает продолжение."""
     tag=node.tag
     blocks=code_table_blocks(node)
     if blocks:return '\n\n'+'\n\n'.join('[КОД]' for _ in blocks)+'\n\n'
     if tag=='table' and preserve_tables:
+        if preserve_code_tables:
+            from .code_tables import code_grid
+            result=code_grid(node)
+            if result is not None:return '\n\n'+result[0]+'\n\n'
         grid=table_grid(node)
         return '\n\n'+grid+'\n\n' if grid is not None else ''
     if not isinstance(tag,str) or tag in SKIP:return ''
@@ -76,7 +80,7 @@ def render(node,depth=0,*,preserve_tables=False,preserve_list_blocks=False):
     for child in node:
         tail=inline_space(child.tail)
         if tag in {'ul','ol'} and not tail.strip():tail=''
-        content+=render(child,child_depth,preserve_tables=preserve_tables,preserve_list_blocks=preserve_list_blocks)+tail
+        content+=render(child,child_depth,preserve_tables=preserve_tables,preserve_list_blocks=preserve_list_blocks,preserve_code_tables=preserve_code_tables)+tail
     if tag in {'h1','h2','h3','h4','h5','h6'}:
         value=' '.join(content.split())
         return '\n\n'+'#'*int(tag[1])+' '+value+'\n\n' if value else ''
@@ -92,12 +96,16 @@ def render(node,depth=0,*,preserve_tables=False,preserve_list_blocks=False):
     return content
 
 
-def code_count(node):
+def code_count(node,*,preserve_code_tables=False):
     blocks=code_table_blocks(node)
     if blocks:return len(blocks)
+    if node.tag=='table' and preserve_code_tables:
+        from .code_tables import code_grid
+        result=code_grid(node)
+        if result is not None:return result[1]
     if not isinstance(node.tag,str) or node.tag in SKIP:return 0
     if node.tag=='pre':return 1
-    return sum(code_count(child) for child in node)
+    return sum(code_count(child,preserve_code_tables=preserve_code_tables) for child in node)
 
 
 def attributed_quote(node):
@@ -158,7 +166,7 @@ def restore_label_tables(main,host):
     return restored
 
 
-def content_table_status(main):
+def content_table_status(main,*,preserve_code_tables=False):
     preserved=0;unresolved=0
     for node in main.xpath('.//table'):
         parents=[]
@@ -166,7 +174,11 @@ def content_table_status(main):
             if parent is main:break
             parents.append(parent)
         if any(n.tag in SKIP for n in parents) or code_table_blocks(node):continue
-        if table_grid(node) is None:unresolved+=1
+        code=None
+        if preserve_code_tables:
+            from .code_tables import code_grid
+            code=code_grid(node)
+        if table_grid(node) is None and code is None:unresolved+=1
         else:preserved+=1
     return dict(preserved_data_tables=preserved,unresolved_data_tables=unresolved)
 
@@ -425,8 +437,9 @@ def choose_title(tree,main,host):
     return nodes[0] if len(nodes)==1 else None
 
 
-def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,preserve_content=False,preserve_roles=False,preserve_pre_tables=False,preserve_callouts=False):
+def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,preserve_content=False,preserve_roles=False,preserve_pre_tables=False,preserve_callouts=False,preserve_code_tables=False):
     from lxml import html
+    if preserve_code_tables:preserve_callouts=True
     if preserve_callouts:preserve_pre_tables=True
     if preserve_pre_tables:preserve_roles=True
     if preserve_roles:preserve_content=True
@@ -460,7 +473,7 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,p
         quote_meta.update(restore(main) if main is not None else dict(preserved_pre_tables=None,unresolved_pre_tables=None))
     if preserve_content:
         quote_meta['removed_ad_widgets']=drop_content_ads(main,host) if main is not None else None
-        quote_meta.update(content_table_status(main) if main is not None else dict(preserved_data_tables=None,unresolved_data_tables=None))
+        quote_meta.update(content_table_status(main,preserve_code_tables=preserve_code_tables) if main is not None else dict(preserved_data_tables=None,unresolved_data_tables=None))
     title=choose_title(tree,main,host)
     title_text=render(title).strip().removeprefix('# ') if title is not None else ''
     if main is None:
@@ -470,7 +483,7 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,p
             clean=extracted_text('# '+title_text+'\n\n'+clean.raw,code_blocks=fallback.code_blocks)
     else:
         list_blocks=preserve_callouts and method=='profile:rsdn-article-body'
-        text=render(main,preserve_tables=preserve_content,preserve_list_blocks=list_blocks).strip()
+        text=render(main,preserve_tables=preserve_content,preserve_list_blocks=list_blocks,preserve_code_tables=preserve_code_tables).strip()
         prefix=supplementary_blocks(tree,main,host)
         if preserve_editorial and method=='profile:snob-article-text':
             leads=main.getparent().xpath('./hgroup/h3[contains(concat(" ",normalize-space(@class)," ")," lead ")]')
@@ -479,7 +492,7 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,p
         text='\n'.join(line.rstrip() if (list_blocks and line.startswith('  ')) or re.match(r'^ *- ',line) else line.strip() for line in text.splitlines())
         if title_text and main is not title and main not in title.iterancestors():
             text='# '+title_text+'\n\n'+text
-        clean=extracted_text(text,code_blocks=code_count(main))
-    version=HTML_CALLOUT_VERSION if preserve_callouts else HTML_PRE_TABLE_VERSION if preserve_pre_tables else HTML_ROLES_VERSION if preserve_roles else HTML_CONTENT_VERSION if preserve_content else HTML_EDITORIAL_VERSION if preserve_editorial else HTML_STRUCTURE_VERSION
+        clean=extracted_text(text,code_blocks=code_count(main,preserve_code_tables=preserve_code_tables))
+    version=HTML_CODE_TABLE_VERSION if preserve_code_tables else HTML_CALLOUT_VERSION if preserve_callouts else HTML_PRE_TABLE_VERSION if preserve_pre_tables else HTML_ROLES_VERSION if preserve_roles else HTML_CONTENT_VERSION if preserve_content else HTML_EDITORIAL_VERSION if preserve_editorial else HTML_STRUCTURE_VERSION
     return clean,meta|quote_meta|dict(clean_version=version,extraction_method=method,
                            title_source='DOM-h1' if title_text else 'not-found',quality_review='pending')
