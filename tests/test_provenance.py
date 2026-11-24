@@ -1,10 +1,44 @@
 import unittest
-from bench.provenance import rsdn_primary_header
+from bench.provenance import rsdn_primary_header,rsdn_profile_constraints
 
 def page(label='Автор:',value='<a href="/account/info/1">Первый Автор</a>',translation=''):
     return '<html><body><h5><span class="title">'+label+'</span><span class="value">'+value+'</span>'+translation+'</h5><div class="MESS">Текст статьи.</div></body></html>'
 
 class ProvenanceTest(unittest.TestCase):
+    def test_profile_aliases_share_constraint_without_replacing_name(self):
+        for href in ['/account/info/1','https://rsdn.ru/Users/Profile.aspx?uid=001','//www.rsdn.org/account/info/01']:
+            source=page(value='<a href="'+href+'">Другой вариант имени</a>')
+            self.assertEqual(rsdn_profile_constraints(source,'https://rsdn.org/article/example'),['rsdn-profile:1'])
+            self.assertEqual(rsdn_primary_header(source,'https://rsdn.org/article/example')['authors'],['другой вариант имени'])
+
+    def test_additional_credit_stays_ambiguous_and_still_constrained(self):
+        for credit in ['Компания','По материалам другого автора','<a href="/account/info/2">Другой Автор</a>']:
+            source=page(value='<a href="/account/info/1">Первый Автор</a><br>'+credit)
+            self.assertEqual(rsdn_primary_header(source,'https://rsdn.org/article')['authors'],[])
+            expected=['rsdn-profile:1','rsdn-profile:2'] if '/account/info/2' in credit else ['rsdn-profile:1']
+            self.assertEqual(rsdn_profile_constraints(source,'https://rsdn.org/article'),expected)
+
+    def test_profile_links_outside_author_field_are_not_constraints(self):
+        credit='<br><span class="title">Перевод:</span><span class="value"><a href="/account/info/2">Переводчик</a></span>'
+        source=page(value='Первый Автор',translation=credit)
+        source=source.replace('</body>','<p><a href="/account/info/1">Чужая ссылка</a></p></body>')
+        self.assertEqual(rsdn_profile_constraints(source,'https://rsdn.org/article'),[])
+        fragment=page().split('<body>')[1].split('</body>')[0]
+        self.assertEqual(rsdn_profile_constraints('<body><blockquote>'+fragment+'</blockquote></body>','https://rsdn.org/article'),[])
+
+    def test_invalid_profile_links_are_not_repaired_or_guessed(self):
+        for href in ['https://other.example/account/info/1','https://rsdn.org.other.example/account/info/1',
+                     'http:///www.rsdn.ru/Users/Profile.aspx?uid=1','https://user'+'@'+'rsdn.org/account/info/1',
+                     'https://rsdn.org:8080/account/info/1','/account/info/0','/account/info/name',
+                     '/Users/Profile.aspx?uid=1&amp;uid=2','/Users/Profile.aspx?uid=1&amp;uid=','/Users/Profile.aspx?uid=','javascript:/account/info/1',
+                     '/account/info/ 1']:
+            with self.subTest(href=href):
+                self.assertEqual(rsdn_profile_constraints(page(value='<a href="'+href+'">Автор</a>'),'https://rsdn.org/article'),[])
+
+    def test_multiple_primary_headers_do_not_supply_constraints(self):
+        source=page().replace('</h5>','</h5><h5><span class="title">Автор:</span><span class="value">Ещё Автор</span></h5>')
+        self.assertEqual(rsdn_profile_constraints(source,'https://rsdn.org/article'),[])
+
     def test_original_and_translator_are_separate_roles(self):
         credit='<br><span class="title">Перевод:</span><span class="value">Другой Человек</span>'
         result=rsdn_primary_header(page(translation=credit),'https://rsdn.org/article')

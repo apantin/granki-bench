@@ -4,6 +4,30 @@ from bench.corpus_selection import quota,group_hashes
 
 
 class SelectionTest(unittest.TestCase):
+    def test_profile_constraints_limit_aliases_and_keep_literal_name_limit(self):
+        docs=self.fixtures()[:8]
+        for i,row in enumerate(docs):row.update(author=f'name-{i}',author_quota_keys=['rsdn-profile:1'] if i<4 else [])
+        for row in docs[4:]:row['author']='same-literal-name'
+        params=dict(seed='v1',target=20,subgenres=['personal'],domain_cap=1,author_cap=2)
+        selected=quota(docs,**params)
+        self.assertEqual(sum(bool(d['author_quota_keys']) for d in selected),2)
+        self.assertEqual(sum(d['author']=='same-literal-name' for d in selected),2)
+        self.assertEqual(selected,quota(list(reversed(docs)),**params))
+
+    def test_profile_constraints_do_not_replace_domain_or_coauthor_cap(self):
+        docs=self.fixtures()[:4]
+        for i,row in enumerate(docs):row.update(author='domain:example.org',authors=['domain:example.org'],author_quota_keys=[f'rsdn-profile:{i+1}'])
+        params=dict(seed='v1',target=10,subgenres=['personal'],domain_cap=1,author_cap=1)
+        self.assertEqual(len(quota(docs,**params)),1)
+        for i,row in enumerate(docs):row.update(authors=[f'first-{i}','shared-coauthor'])
+        self.assertEqual(len(quota(docs,**params)),1)
+
+    def test_invalid_additional_quota_keys_fail(self):
+        for keys in ['profile',None,[''],[1]]:
+            docs=self.fixtures()[:1];docs[0]['author_quota_keys']=keys
+            with self.subTest(keys=keys),self.assertRaises(ValueError):
+                quota(docs,seed='v1',target=10,subgenres=['personal'],domain_cap=1,author_cap=2)
+
     def test_coauthor_limit_counts_every_member_and_each_subgenre_separately(self):
         docs=self.fixtures()[:5]
         for i,row in enumerate(docs):row.update(subgenre='personal' if i<4 else 'column',author='composite',authors=['first',f'other-{i}'])
