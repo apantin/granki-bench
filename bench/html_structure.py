@@ -5,7 +5,7 @@
 from __future__ import annotations
 import re
 from urllib.parse import urlsplit
-from .cleaning import HTML_STRUCTURE_VERSION,HTML_EDITORIAL_VERSION,HTML_CONTENT_VERSION,HTML_ROLES_VERSION,_html_article,extracted_text
+from .cleaning import HTML_STRUCTURE_VERSION,HTML_EDITORIAL_VERSION,HTML_CONTENT_VERSION,HTML_ROLES_VERSION,HTML_PRE_TABLE_VERSION,_html_article,extracted_text
 
 
 def decode(content: bytes | str) -> str:
@@ -421,8 +421,9 @@ def choose_title(tree,main,host):
     return nodes[0] if len(nodes)==1 else None
 
 
-def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,preserve_content=False,preserve_roles=False):
+def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,preserve_content=False,preserve_roles=False,preserve_pre_tables=False):
     from lxml import html
+    if preserve_pre_tables:preserve_roles=True
     if preserve_roles:preserve_content=True
     if preserve_content:preserve_editorial=True
     source=decode(content)
@@ -449,6 +450,9 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,p
         restored=restore_label_tables(main,host) if main is not None else 0
         if restored:quote_meta['preserved_label_tables']=restored
         quote_meta.update(restore_editorial_blocks(main,host) if main is not None else dict(preserved_editorial_callouts=None,preserved_unattributed_quotes=None,quote_review_blocks=None,unresolved_mixed_figures=None))
+    if preserve_pre_tables:
+        from .pre_tables import restore
+        quote_meta.update(restore(main) if main is not None else dict(preserved_pre_tables=None,unresolved_pre_tables=None))
     if preserve_content:
         quote_meta['removed_ad_widgets']=drop_content_ads(main,host) if main is not None else None
         quote_meta.update(content_table_status(main) if main is not None else dict(preserved_data_tables=None,unresolved_data_tables=None))
@@ -470,6 +474,6 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,p
         if title_text and main is not title and main not in title.iterancestors():
             text='# '+title_text+'\n\n'+text
         clean=extracted_text(text,code_blocks=code_count(main))
-    version=HTML_ROLES_VERSION if preserve_roles else HTML_CONTENT_VERSION if preserve_content else HTML_EDITORIAL_VERSION if preserve_editorial else HTML_STRUCTURE_VERSION
+    version=HTML_PRE_TABLE_VERSION if preserve_pre_tables else HTML_ROLES_VERSION if preserve_roles else HTML_CONTENT_VERSION if preserve_content else HTML_EDITORIAL_VERSION if preserve_editorial else HTML_STRUCTURE_VERSION
     return clean,meta|quote_meta|dict(clean_version=version,extraction_method=method,
                            title_source='DOM-h1' if title_text else 'not-found',quality_review='pending')
