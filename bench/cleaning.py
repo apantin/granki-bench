@@ -14,6 +14,7 @@ HTML_ROLES_VERSION = 'clean-v8-roles-candidate'
 HTML_PRE_TABLE_VERSION = 'clean-v9-pre-tables-candidate'
 HTML_CALLOUT_VERSION = 'clean-v10-callouts-candidate'
 HTML_CODE_TABLE_VERSION = 'clean-v11-code-tables-candidate'
+HTML_BODY_VERSION = 'clean-v12-body-candidate'
 WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё]+(?:[-’'][A-Za-zА-Яа-яЁё]+)*|\d+(?:[.,]\d+)?")
 
 
@@ -81,6 +82,12 @@ def html_article_code_tables_candidate(content: bytes | str, url: str = '') -> t
     """Отдельный кандидат: сохраняет таблицы с явными блоками кода в ячейках."""
     from .html_structure import extract_candidate
     return extract_candidate(content, url, preserve_code_tables=True)
+
+
+def html_article_body_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
+    """Кандидат формул/секций code-таблиц и явных ролей тела; старые версии прежние."""
+    from .html_structure import extract_candidate
+    return extract_candidate(content, url, preserve_body_roles=True)
 
 
 def html_article_inline_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
