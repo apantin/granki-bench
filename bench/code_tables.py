@@ -2,7 +2,34 @@
 from copy import deepcopy
 
 
-def code_grid(node):
+def sectioned_grid(node):
+    """Полноширинный th называет секцию, td сохраняются по порядку без colspan."""
+    from .html_structure import render
+    rows=node.xpath('./tr|./thead/tr|./tbody/tr|./tfoot/tr')
+    if not rows or any(n.tag not in {'tr','thead','tbody','tfoot'} for n in node):return None
+    if any(n.tag!='tr' for group in node if group.tag in {'thead','tbody','tfoot'} for n in group):return None
+    sections=[];width=None;expected=[]
+    for row in rows:
+        cells=list(row)
+        if len(cells)==1 and cells[0].tag=='th':
+            cell=cells[0];span=cell.get('colspan','')
+            if not span.isascii() or not span.isdecimal():return None
+            try:span_value=int(span)
+            except ValueError:return None
+            if span_value<2 or cell.get('rowspan','1')!='1':return None
+            if width is not None and span_value!=width:return None
+            if not cell.text_content().strip() or sections and not sections[-1][1]:return None
+            width=span_value;sections.append((cell,[]));expected.append(cell)
+        else:
+            if not sections or len(cells)!=width or any(n.tag!='td' or any(n.get(k,'1')!='1' for k in ('rowspan','colspan')) for n in cells):return None
+            sections[-1][1].append(cells);expected.extend(cells)
+    if not sections or not sections[-1][1]:return None
+    if ''.join(node.text_content().split())!=''.join(''.join(n.text_content().split()) for n in expected):return None
+    def value(cell):return ' '.join(render(cell).split()).replace('\\','\\\\').replace('|','\\|')
+    return '\n\n'.join(value(header)+'\n'+'\n'.join('| '+' | '.join(value(cell) for cell in row)+' |' for row in data) for header,data in sections)
+
+
+def code_grid(node,*,allow_group_headers=False):
     """Возвращает текст и число блоков; неоднозначная структура не принимается.
 
     Исходный DOM не меняется. Маскируются только pre и чистые одноклеточные
@@ -40,4 +67,5 @@ def code_grid(node):
         block.tag='span';block.attrib.clear();block.text='[КОД]';block[:]=[]
     for wrapper in clone.xpath('.//div'):wrapper.tag='span'
     grid=table_grid(clone)
+    if grid is None and allow_group_headers and not node.xpath('.//th//pre|.//th//table'):grid=sectioned_grid(clone)
     return (grid,len(blocks)) if grid is not None else None
