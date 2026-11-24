@@ -13,6 +13,7 @@ HTML_CONTENT_VERSION = 'clean-v7-content-candidate'
 HTML_ROLES_VERSION = 'clean-v8-roles-candidate'
 HTML_PRE_TABLE_VERSION = 'clean-v9-pre-tables-candidate'
 HTML_CALLOUT_VERSION = 'clean-v10-callouts-candidate'
+HTML_CODE_TABLE_VERSION = 'clean-v11-code-tables-candidate'
 WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё]+(?:[-’'][A-Za-zА-Яа-яЁё]+)*|\d+(?:[.,]\d+)?")
 
 
@@ -74,6 +75,12 @@ def extracted_text(text: str, *, code_blocks: int = 0) -> CleanText:
 def html_article(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
     """Локальное извлечение HTML; библиотека не выполняет сетевых запросов."""
     return _html_article(content, url, flatten_inline=False)
+
+
+def html_article_code_tables_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
+    """Отдельный кандидат: сохраняет таблицы с явными блоками кода в ячейках."""
+    from .html_structure import extract_candidate
+    return extract_candidate(content, url, preserve_code_tables=True)
 
 
 def html_article_inline_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
