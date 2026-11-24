@@ -20,6 +20,7 @@ class NormGuardTest(unittest.TestCase):
         def check(policy):return guard.norm_problems('norms/article-blog/config.json',json.dumps(dict(provenance_policy=policy)).encode())
         self.assertEqual(check('rsdn-primary-header-v1'),[])
         self.assertEqual(check('rsdn-primary-header-profile-v2'),[])
+        self.assertEqual(check('rsdn-primary-header-profile-translation-v3'),[])
         for policy in (None,True,'private-file','unknown'):
             self.assertTrue(check(policy))
 
