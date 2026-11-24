@@ -12,6 +12,7 @@ HTML_EDITORIAL_VERSION = 'clean-v6-editorial-candidate'
 HTML_CONTENT_VERSION = 'clean-v7-content-candidate'
 HTML_ROLES_VERSION = 'clean-v8-roles-candidate'
 HTML_PRE_TABLE_VERSION = 'clean-v9-pre-tables-candidate'
+HTML_CALLOUT_VERSION = 'clean-v10-callouts-candidate'
 WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё]+(?:[-’'][A-Za-zА-Яа-яЁё]+)*|\d+(?:[.,]\d+)?")
 
 
@@ -109,6 +110,12 @@ def html_article_pre_tables_candidate(content: bytes | str, url: str = '') -> tu
     """Отдельный кандидат явных таблиц в pre; не меняет прежние версии."""
     from .html_structure import extract_candidate
     return extract_candidate(content, url, preserve_pre_tables=True)
+
+
+def html_article_callouts_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
+    """Кандидат расширенных DOM-врезок и подписей; v3–v9 не меняет."""
+    from .html_structure import extract_candidate
+    return extract_candidate(content, url, preserve_callouts=True)
 
 
 def rsdn_author_header_candidate(tree) -> str | None:
