@@ -1,10 +1,48 @@
 import unittest
-from bench.provenance import rsdn_primary_header,rsdn_profile_constraints
+from bench.provenance import rsdn_primary_header,rsdn_profile_constraints,rsdn_translation_marker
 
 def page(label='Автор:',value='<a href="/account/info/1">Первый Автор</a>',translation=''):
     return '<html><body><h5><span class="title">'+label+'</span><span class="value">'+value+'</span>'+translation+'</h5><div class="MESS">Текст статьи.</div></body></html>'
 
 class ProvenanceTest(unittest.TestCase):
+    def test_translation_without_author_is_a_marker_without_author_admission(self):
+        for value in ['Переводчик', '<a href="/account/info/1">Первый</a><br><a href="/account/info/2">Второй</a>']:
+            source=page(label='Перевод:',value=value)
+            self.assertEqual(rsdn_translation_marker(source,'https://rsdn.org/article'),'explicit-translation')
+            self.assertEqual(rsdn_primary_header(source,'https://rsdn.org/article')['translation_status'],'unknown-primary-header')
+            self.assertEqual(rsdn_primary_header(source,'https://rsdn.org/article')['authors'],[])
+            self.assertEqual(rsdn_profile_constraints(source,'https://rsdn.org/article'),[])
+
+    def test_unknown_source_editor_and_empty_translation_stay_unknown(self):
+        for source in [page(label='Источник:'),page(label='Материал предоставил:'),page(label='Редактор:'),
+                       page(label='Перевод:',value=' '),page(label='Перевод:').replace('class="value"','class="other"'),
+                       page(label='Перевод:').replace('<span class="value">','<br><span class="value">'), '']:
+            self.assertEqual(rsdn_translation_marker(source,'https://rsdn.org/article'),'unknown-primary-header')
+
+    def test_translation_only_duplicate_or_active_header_stays_unknown(self):
+        source=page(label='Перевод:')
+        for content in [source.replace('</h5>','</h5><h5><span class="title">Источник:</span><span class="value">Журнал</span></h5>'),
+                        source.replace('</h5>','<span class="title">Перевод:</span><span class="value">Другой</span></h5>'),
+                        page(label='Перевод:',value='<script>Имя</script>'),
+                        page(label='Перевод:',value='<template>Имя</template>')]:
+            self.assertEqual(rsdn_translation_marker(content,'https://rsdn.org/article'),'unknown-primary-header')
+
+    def test_translation_only_nested_quote_and_other_host_are_not_primary(self):
+        fragment='<h5><span class="title">Перевод:</span><span class="value">Переводчик</span></h5>'
+        for content in ['<body><blockquote>'+fragment+'</blockquote></body>',
+                        '<body><article>'+fragment+'</article></body>',
+                        '<body><p>Перевод: Переводчик</p></body>']:
+            self.assertEqual(rsdn_translation_marker(content,'https://rsdn.org/article'),'unknown-primary-header')
+        self.assertEqual(rsdn_translation_marker(page(label='Перевод:'),'https://other.example/article'),'not-applicable')
+
+    def test_ambiguous_author_is_not_bypassed_by_translation_extension(self):
+        source=page(translation='<span class="title">Авторы:</span><span class="value">Другой</span><span class="title">Перевод:</span><span class="value">Переводчик</span>')
+        self.assertEqual(rsdn_translation_marker(source,'https://rsdn.org/article'),'unknown-primary-header')
+
+    def test_existing_classified_statuses_are_preserved(self):
+        for source in [page(),page(translation='<span class="title">Перевод:</span><span class="value">Переводчик</span>'),page(value='Автор<br>Компания')]:
+            self.assertEqual(rsdn_translation_marker(source,'https://rsdn.org/article'),rsdn_primary_header(source,'https://rsdn.org/article')['translation_status'])
+
     def test_profile_aliases_share_constraint_without_replacing_name(self):
         for href in ['/account/info/1','https://rsdn.ru/Users/Profile.aspx?uid=001','//www.rsdn.org/account/info/01']:
             source=page(value='<a href="'+href+'">Другой вариант имени</a>')

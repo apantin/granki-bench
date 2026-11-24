@@ -38,6 +38,33 @@ def rsdn_primary_header(content: bytes | str,url: str) -> dict:
     return result|dict(author_status='primary-author-field',authors=[name])
 
 
+def rsdn_translation_marker(content: bytes | str,url: str) -> str:
+    """Дополнительный явный перевод без автора; прежний разбор v1 не меняется.
+
+    Отсутствие поля автора мешает установить авторство, но не отменяет
+    отдельное непустое поле перевода в единственной первичной шапке.
+    Другие неизвестные формы остаются неизвестными.
+    """
+    previous=rsdn_primary_header(content,url)['translation_status']
+    if previous!='unknown-primary-header':return previous
+    from lxml import html
+    source=decode(content)
+    if not source.strip():return previous
+    tree=html.fromstring(source)
+    headers=tree.xpath('//body/h5[span[contains(concat(" ",normalize-space(@class)," ")," title ")]]')
+    if len(headers)!=1:return previous
+    node=headers[0]
+    if node.xpath('.//script|.//style|.//template|.//noscript'):return previous
+    labels=node.xpath('./span[contains(concat(" ",normalize-space(@class)," ")," title ")]')
+    text=lambda n:' '.join(' '.join(n.itertext()).split())
+    if any(text(n).casefold() in {'автор:','авторы:'} for n in labels):return previous
+    translations=[n for n in labels if text(n).casefold()=='перевод:']
+    if len(translations)!=1:return previous
+    value=translations[0].getnext()
+    if value is None or value.tag!='span' or 'value' not in value.get('class','').split() or not text(value):return previous
+    return 'explicit-translation'
+
+
 def _rsdn_profile_key(href: str,url: str) -> str | None:
     """Только два явных вида профильных ссылок; без сетевого разрешения/ремонта."""
     import re
