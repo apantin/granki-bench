@@ -1,5 +1,5 @@
 """Кандидат происхождения по первичной RSDN-шапке; без изменения clean-v3."""
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs,urljoin,urlsplit
 from .html_structure import decode
 
 def rsdn_primary_header(content: bytes | str,url: str) -> dict:
@@ -36,3 +36,43 @@ def rsdn_primary_header(content: bytes | str,url: str) -> dict:
     name=text(value).casefold()
     if len(name)>200:return result
     return result|dict(author_status='primary-author-field',authors=[name])
+
+
+def _rsdn_profile_key(href: str,url: str) -> str | None:
+    """Только два явных вида профильных ссылок; без сетевого разрешения/ремонта."""
+    import re
+    if not href or href!=href.strip() or re.search(r'\s',href):return None
+    try:
+        original=urlsplit(href)
+        if original.scheme and not original.netloc:return None
+        parsed=urlsplit(urljoin(url,href))
+        if (parsed.scheme not in {'http','https'} or parsed.username or parsed.password
+                or parsed.port not in {None,80,443}
+                or (parsed.hostname or '').removeprefix('www.') not in {'rsdn.org','rsdn.ru'}):return None
+        path=parsed.path.casefold();match=re.fullmatch(r'/account/info/([0-9]+)',path)
+        values=[match.group(1)] if match else parse_qs(parsed.query,keep_blank_values=True).get('uid',[]) if path=='/users/profile.aspx' else []
+        if len(values)!=1 or not re.fullmatch(r'[0-9]+',values[0]):return None
+        number=values[0].lstrip('0')
+        return 'rsdn-profile:'+number if number else None
+    except ValueError:return None
+
+
+def rsdn_profile_constraints(content: bytes | str,url: str) -> list[str]:
+    """Дополнительные квотные ключи, а не допуск личности/роли или замена имени.
+
+    Неоднозначное поле по-прежнему требует доменной квоты. Профильные ссылки
+    в нём могут только усилить ограничение; переводчик/источник не учитываются.
+    """
+    status=rsdn_primary_header(content,url)['translation_status']
+    if status not in {'explicit-translation','no-explicit-translation-in-header'}:return []
+    from lxml import html
+    tree=html.fromstring(decode(content));keys=set()
+    for node in tree.xpath('//body/h5[span[contains(concat(" ",normalize-space(@class)," ")," title ")]]'):
+        for label in node.xpath('./span[contains(concat(" ",normalize-space(@class)," ")," title ")]'):
+            if ' '.join(' '.join(label.itertext()).split()).casefold() not in {'автор:','авторы:'}:continue
+            value=label.getnext()
+            if value is None or value.tag!='span' or 'value' not in value.get('class','').split():continue
+            for link in value.xpath('.//a[@href]'):
+                key=_rsdn_profile_key(link.get('href'),url)
+                if key:keys.add(key)
+    return sorted(keys)

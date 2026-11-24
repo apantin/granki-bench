@@ -27,7 +27,9 @@ MAX_BYTES = 5 * 1024 * 1024
 # Файлы данных — только в наборах эталонов (anchors/), где их сверяет манифест.
 DATA_EXT = {'.csv', '.tsv', '.jsonl', '.txt', '.parquet', '.xlsx', '.xls', '.xml', '.html', '.epub', '.fb2',
             '.pdf', '.docx', '.doc', '.rtf', '.zip', '.gz', '.xz', '.bz2', '.tar', '.7z'}
-PRIVATE = re.compile(r'/home/[a-z]|/Users/[A-Za-z]|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.(?:com|ru|me|org|net)\b')
+# Profile.aspx?uid= — старый веб-маршрут, не домашняя папка macOS.
+# Исключение только для этого точного маршрута; обычные /Users/... не ослаблены.
+PRIVATE = re.compile(r'/home/[a-z]|/Users/(?!Profile\.aspx\?uid=)[A-Za-z]|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.(?:com|ru|me|org|net)\b')
 
 
 def staged() -> list[str]:
@@ -87,7 +89,7 @@ def norm_problems(path: str, data: bytes) -> list[str]:
                    'index_method', 'candidate_limit', 'candidate_limits', 'max_blocks', 'subgenres', 'dependencies', 'provenance_policy'}
         if not isinstance(config, dict) or set(config) - allowed:
             return ['недопустимые поля конфигурации нормы']
-        if 'provenance_policy' in config and config['provenance_policy']!='rsdn-primary-header-v1':
+        if 'provenance_policy' in config and config['provenance_policy'] not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2'}:
             return ['неизвестная политика происхождения нормы']
         limits=config.get('candidate_limits',{})
         if not isinstance(limits,dict) or any(not re.fullmatch(r'[a-z0-9.-]+\.[a-z]{2,}',k) or
