@@ -21,6 +21,7 @@ V5 = 'rsdn-primary-header-profile-v2'
 V6 = 'rsdn-primary-header-profile-translation-v3'
 V7 = 'primary-header-rsdn-habr-v4'
 V8 = 'primary-source-rsdn-habr-v5'
+V9 = 'primary-source-rsdn-habr-kontur-v6'
 
 
 class BuildProvenanceTest(unittest.TestCase):
@@ -132,6 +133,37 @@ class BuildProvenanceTest(unittest.TestCase):
         after,summary,groups,calls=self.run_build(source,V8);self.assertEqual((after,groups,calls),([],[],0));self.assertEqual(summary['primary_header_translation_without_author'],1)
         source='<body><h5><span class="title">Автор:</span><span class="value"><a href="/account/info/1">Первый Автор</a></span></h5><p>Текст.</p></body>'
         before,_,before_groups,_=self.run_build(source,V7);after,_,groups,_=self.run_build(source,V8);self.assertEqual(before_groups,groups)
+        for field in ['author','authors','author_quota_keys','sha256','raw_sha256']:self.assertEqual(before[0][field],after[0][field])
+
+    def test_v9_rejects_only_proven_unbound_preview_before_cleaning(self):
+        data=json.dumps({'@type':'Article','headline':'Пример','author':{'@type':'Organization','name':'Компания'}},ensure_ascii=False)
+        source='<head><title>Пример</title><script type="application/ld+json">'+data+'</script></head><body><div class="content-block_article-announce"><h1>Пример</h1></div><div id="ArticleItem"><p>Авторский текст.</p></div><article class="tile_articlePreview"><span class="byLineBlock-author">Антон Примеров</span></article></body>'
+        before,_,_,calls=self.run_build(source,V8,'kontur.ru');self.assertEqual((len(before),calls),(1,1))
+        after,summary,groups,calls=self.run_build(source,V9,'kontur.ru')
+        self.assertEqual((after,groups,calls),([],[],0));self.assertEqual(summary['kontur_unbound_preview_credit'],1)
+        source=source.replace('<h1>Пример</h1>','<h1>Пример</h1><span class="article-announce-autor-block__name">Антон Примеров</span>')
+        after,summary,_,calls=self.run_build(source,V9,'kontur.ru')
+        self.assertEqual((len(after),calls),(1,1));self.assertNotIn('kontur_unbound_preview_credit',summary)
+
+    def test_v9_joint_credit_sets_each_quota_member_without_changing_cleaned_bytes(self):
+        source='<body><div class="content-block_article-announce"><h1>Пример</h1><span class="article-announce-autor-block__name">Ирина Проверова</span></div><div id="ArticleItem"><p><em>Ирина Проверова и Михаил Тестов, эксперты системы интернет-отчетности Контур.Экстерн</em></p></div></body>'
+        before,_,_,_=self.run_build(source,V8,'kontur.ru');after,summary,_,calls=self.run_build(source,V9,'kontur.ru')
+        self.assertEqual((len(after),calls),(1,1))
+        self.assertEqual(after[0]['authors'],['ирина проверова','михаил тестов'])
+        self.assertEqual(after[0]['author'],'ирина проверова; михаил тестов')
+        self.assertEqual(summary['kontur_coauthors:explicit-coauthors'],1)
+        self.assertEqual(after[0]['author_method'],V9+':explicit-coauthors')
+        for key in ['sha256','raw_sha256']:self.assertEqual(before[0][key],after[0][key])
+
+    def test_v9_preserves_rsdn_habr_gates_and_existing_profile_constraints(self):
+        variants=[('rsdn.org','<body><h5><span class="title">Перевод:</span><span class="value">Переводчик</span></h5></body>','primary_header_translation'),
+                  ('habr.com','<body><article class="post post_full"><div class="post__wrapper"><h1>Пример</h1><div id="post-content-body"><p>Предлагаю перевод интересной статьи о формате.</p></div></div></article></body>','habr_source:explicit-translation')]
+        for host,source,counter in variants:
+            with self.subTest(host=host):
+                after,summary,groups,calls=self.run_build(source,V9,host)
+                self.assertEqual((after,groups,calls),([],[],0));self.assertEqual(summary[counter],1)
+        source='<body><h5><span class="title">Автор:</span><span class="value"><a href="/account/info/1">Первый Автор</a></span></h5><p>Текст.</p></body>'
+        before,_,_,_=self.run_build(source,V8);after,_,_,_=self.run_build(source,V9)
         for field in ['author','authors','author_quota_keys','sha256','raw_sha256']:self.assertEqual(before[0][field],after[0][field])
 
 
