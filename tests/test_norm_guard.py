@@ -8,6 +8,13 @@ spec.loader.exec_module(guard)
 
 
 class NormGuardTest(unittest.TestCase):
+    def test_legacy_profile_query_is_not_a_local_home(self):
+        self.assertIsNone(guard.PRIVATE.search('/Users/Profile.aspx?uid=1'))
+        for suffix in ['Example/project','Example','Profile.aspx/project','Profile.aspx']:
+            with self.subTest(suffix=suffix):self.assertIsNotNone(guard.PRIVATE.search('/Users/'+suffix))
+        self.assertIsNotNone(guard.PRIVATE.search('/home/'+'example/project'))
+        self.assertIsNotNone(guard.PRIVATE.search('/Users/Profile.aspx?uid=1/Users/'+'Example'))
+
     def test_only_named_provenance_policy_is_allowed(self):
         import json
         def check(policy):return guard.norm_problems('norms/article-blog/config.json',json.dumps(dict(provenance_policy=policy)).encode())

@@ -27,7 +27,9 @@ MAX_BYTES = 5 * 1024 * 1024
 # Файлы данных — только в наборах эталонов (anchors/), где их сверяет манифест.
 DATA_EXT = {'.csv', '.tsv', '.jsonl', '.txt', '.parquet', '.xlsx', '.xls', '.xml', '.html', '.epub', '.fb2',
             '.pdf', '.docx', '.doc', '.rtf', '.zip', '.gz', '.xz', '.bz2', '.tar', '.7z'}
-PRIVATE = re.compile(r'/home/[a-z]|/Users/[A-Za-z]|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.(?:com|ru|me|org|net)\b')
+# Profile.aspx?uid= — старый веб-маршрут, не домашняя папка macOS.
+# Исключение только для этого точного маршрута; обычные /Users/... не ослаблены.
+PRIVATE = re.compile(r'/home/[a-z]|/Users/(?!Profile\.aspx\?uid=)[A-Za-z]|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.(?:com|ru|me|org|net)\b')
 
 
 def staged() -> list[str]:
