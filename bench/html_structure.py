@@ -5,7 +5,7 @@
 from __future__ import annotations
 import re
 from urllib.parse import urlsplit
-from .cleaning import HTML_STRUCTURE_VERSION,HTML_EDITORIAL_VERSION,HTML_CONTENT_VERSION,_html_article,extracted_text
+from .cleaning import HTML_STRUCTURE_VERSION,HTML_EDITORIAL_VERSION,HTML_CONTENT_VERSION,HTML_ROLES_VERSION,_html_article,extracted_text
 
 
 def decode(content: bytes | str) -> str:
@@ -345,7 +345,7 @@ def choose_main(tree,host):
     return None,'trafilatura-inline-fallback'
 
 
-def drop_site_ui(main,host,method):
+def drop_site_ui(main,host,method,*,strict_rsdn=False):
     if host in {'selectel.ru','blog.selectel.ru'}:
         paragraphs=main.xpath('./p')
         if paragraphs:
@@ -381,8 +381,9 @@ def drop_site_ui(main,host,method):
             if node.tag=='p':break
             if node.tag in {'h5','h6'} and node.xpath('.//span[contains(concat(" ",normalize-space(@class)," ")," title ")]'):node.drop_tree()
         for node in main.xpath('./div[@align="right"][.//hr and .//a[contains(@href,"/mag/")]]'):node.drop_tree()
-        for node in main.xpath('.//i[contains(@style,"x-small")]'):
-            if re.match(r'^Рисунок\s+\d+\.',node.text_content().strip(),re.I):node.drop_tree()
+        if not strict_rsdn:
+            for node in main.xpath('.//i[contains(@style,"x-small")]'):
+                if re.match(r'^Рисунок\s+\d+\.',node.text_content().strip(),re.I):node.drop_tree()
     if method=='class:content--full':
         for node in main.xpath('.//*[contains(concat(" ",normalize-space(@class)," ")," content-info ")]'):node.drop_tree()
         paragraphs=main.xpath('.//p')
@@ -420,8 +421,9 @@ def choose_title(tree,main,host):
     return nodes[0] if len(nodes)==1 else None
 
 
-def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,preserve_content=False):
+def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,preserve_content=False,preserve_roles=False):
     from lxml import html
+    if preserve_roles:preserve_content=True
     if preserve_content:preserve_editorial=True
     source=decode(content)
     fallback,meta=_html_article(source,url,flatten_inline=True,preserve_extracted=True)
@@ -433,8 +435,11 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,p
         for node in tree.xpath('//*[contains(concat(" ",normalize-space(@class)," ")," content-editorial-tick ")]'):node.drop_tree()
     main,method=choose_main(tree,host)
     if preserve_editorial and main is None:main,method=choose_editorial_main(tree,host)
-    if main is not None:drop_site_ui(main,host,method)
+    if main is not None:drop_site_ui(main,host,method,strict_rsdn=preserve_roles)
     quote_meta={}
+    if preserve_roles and main is not None and host=='rsdn.org' and method=='profile:rsdn-article-body':
+        from .rsdn_roles import repair
+        quote_meta.update(repair(main))
     if preserve_editorial:
         # Отсутствие маркера не доказывает полноту. Наличие — отдельный отказ
         # источника, который нельзя исправить обработкой доступного отрывка.
@@ -465,6 +470,6 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,p
         if title_text and main is not title and main not in title.iterancestors():
             text='# '+title_text+'\n\n'+text
         clean=extracted_text(text,code_blocks=code_count(main))
-    version=HTML_CONTENT_VERSION if preserve_content else HTML_EDITORIAL_VERSION if preserve_editorial else HTML_STRUCTURE_VERSION
+    version=HTML_ROLES_VERSION if preserve_roles else HTML_CONTENT_VERSION if preserve_content else HTML_EDITORIAL_VERSION if preserve_editorial else HTML_STRUCTURE_VERSION
     return clean,meta|quote_meta|dict(clean_version=version,extraction_method=method,
                            title_source='DOM-h1' if title_text else 'not-found',quality_review='pending')

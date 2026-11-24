@@ -10,6 +10,7 @@ HTML_INLINE_VERSION = 'clean-v4-inline-candidate'
 HTML_STRUCTURE_VERSION = 'clean-v5-structure-candidate'
 HTML_EDITORIAL_VERSION = 'clean-v6-editorial-candidate'
 HTML_CONTENT_VERSION = 'clean-v7-content-candidate'
+HTML_ROLES_VERSION = 'clean-v8-roles-candidate'
 WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё]+(?:[-’'][A-Za-zА-Яа-яЁё]+)*|\d+(?:[.,]\d+)?")
 
 
@@ -95,6 +96,12 @@ def html_article_content_candidate(content: bytes | str, url: str = '') -> tuple
     """Отдельный кандидат таблиц/служебных блоков; не меняет v3–v6 и норму."""
     from .html_structure import extract_candidate
     return extract_candidate(content, url, preserve_content=True)
+
+
+def html_article_roles_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
+    """Отдельный кандидат DOM-ролей; прежние v3–v7 и норма не меняются."""
+    from .html_structure import extract_candidate
+    return extract_candidate(content, url, preserve_roles=True)
 
 
 def rsdn_author_header_candidate(tree) -> str | None:
