@@ -2,6 +2,35 @@
 from urllib.parse import parse_qs,urljoin,urlsplit
 from .html_structure import decode
 
+
+def habr_translation_marker(content: bytes | str,url: str) -> str:
+    """Явная метка только в первичной шапке Habr; отсутствие не доказывает оригинал.
+
+    Старый шаблон и неоднозначные шапки остаются unknown. Тело статьи,
+    комментарии, рекомендации и упоминания переводов не классифицируются.
+    """
+    if (urlsplit(url).hostname or '').removeprefix('www.')!='habr.com':return 'not-applicable'
+    from lxml import html
+    unknown='unknown-primary-header';source=decode(content)
+    if not source.strip():return unknown
+    tree=html.fromstring(source)
+    role=lambda name:'contains(concat(" ",normalize-space(@class)," ")," '+name+' ")'
+    bodies=tree.xpath('//*[@id="post-content-body"]')
+    if len(bodies)!=1:return unknown
+    articles=[n for n in bodies[0].iterancestors() if n.tag=='article' and 'tm-article-presenter__content' in n.get('class','').split()]
+    if len(articles)!=1:return unknown
+    headers=articles[0].xpath('./div['+role('tm-article-presenter__header')+']')
+    if len(headers)!=1 or headers[0].xpath('.//script|.//style|.//template|.//noscript'):return unknown
+    snippets=headers[0].xpath('./div['+role('tm-article-presenter__snippet')+']')
+    if len(snippets)!=1 or len(snippets[0].xpath('./h1[normalize-space()]'))!=1:return unknown
+    labels=snippets[0].xpath('./div['+role('tm-article-snippet__labels')+']')
+    if len(labels)>1:return unknown
+    if not labels:return 'no-explicit-translation-in-header'
+    markers=labels[0].xpath('./div['+role('tm-article-snippet__label')+' and '+role('tm-article-snippet__label_variant-translation')+']')
+    if not markers:return 'no-explicit-translation-in-header'
+    if len(markers)!=1 or ' '.join(markers[0].itertext()).strip().casefold()!='перевод':return unknown
+    return 'explicit-translation'
+
 def rsdn_primary_header(content: bytes | str,url: str) -> dict:
     """Отдельные роли автора/переводчика; неизвестное не означает оригинал."""
     unknown=dict(translation_status='unknown-primary-header',author_status='unknown',authors=[])
