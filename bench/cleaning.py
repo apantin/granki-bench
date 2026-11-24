@@ -16,6 +16,7 @@ HTML_CALLOUT_VERSION = 'clean-v10-callouts-candidate'
 HTML_CODE_TABLE_VERSION = 'clean-v11-code-tables-candidate'
 HTML_BODY_VERSION = 'clean-v12-body-candidate'
 HTML_PUBLISHER_VERSION = 'clean-v13-publisher-candidate'
+HTML_KONTUR_VERSION = 'clean-v14-kontur-candidate'
 WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё]+(?:[-’'][A-Za-zА-Яа-яЁё]+)*|\d+(?:[.,]\d+)?")
 
 
@@ -95,6 +96,12 @@ def html_article_publisher_candidate(content: bytes | str, url: str = '') -> tup
     """Отдельный кандидат издательских ролей; прежние версии не меняются."""
     from .html_structure import extract_candidate
     return extract_candidate(content, url, preserve_publisher_roles=True)
+
+
+def html_article_kontur_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
+    """Кандидат лидов/издательских ролей Контура; старые версии сохраняются."""
+    from .html_structure import extract_candidate
+    return extract_candidate(content, url, preserve_kontur_roles=True)
 
 
 def html_article_inline_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
