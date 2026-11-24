@@ -24,11 +24,11 @@ def toolbar(node):
     return bool(re.fullmatch(r'Сообщений\s*\d+\s*Оценка\s*-?\d+(?:\s*\[\s*\+\s*\d+\s*/\s*-\s*\d+\s*\])?\s*Оценить',text(node),re.I))
 
 
-def toc(node,targets):
+def toc(node,targets,*,min_links=2):
     if node.tag!='div' or not re.search(r'(?:^|;)\s*margin-left\s*:\s*2em\s*(?:;|$)',node.get('style',''),re.I):return False
     if any(n.tag not in {'div','a','b','strong','span','br'} for n in node.iterdescendants()):return False
     links=node.xpath('.//a[@href]')
-    if len(links)<2 or ''.join(node.xpath('.//text()[not(ancestor::a)]')).strip():return False
+    if len(links)<min_links or ''.join(node.xpath('.//text()[not(ancestor::a)]')).strip():return False
     return all(a.get('href','').startswith('#') and targets.get(unquote(a.get('href')[1:]))==text(a) for a in links)
 
 
@@ -45,7 +45,7 @@ def legal_footer(node):
                 and re.fullmatch(r'Любой из материалов,.*владельцев авторских прав\.',text(value),re.I))
 
 
-def repair(main):
+def repair(main,*,extended=False):
     """Неоднозначные врезки остаются таблицами и явно требуют проверки."""
     counts=dict(restored_rsdn_notes=0,unresolved_rsdn_notes=0,removed_rsdn_toolbar_tables=0,
                 removed_rsdn_toc=0,removed_rsdn_captions=0,removed_rsdn_legal_footers=0,removed_rsdn_contact_lines=0)
@@ -59,12 +59,18 @@ def repair(main):
         if edge and toolbar(node):node.drop_tree();counts['removed_rsdn_toolbar_tables']+=1
     for node in list(main):
         if node.tag=='p':break
-        if toc(node,targets):node.drop_tree();counts['removed_rsdn_toc']+=1
+        if toc(node,targets,min_links=1 if extended else 2):node.drop_tree();counts['removed_rsdn_toc']+=1
+    if extended:
+        from .rsdn_callouts import repair_callouts,drop_captions
+        counts.update(repair_callouts(main))
+        counts.update(drop_captions(main))
     for node in main.xpath('./p[.//img]/i'):
+        if extended:break
         if (re.search(r'font-size\s*:\s*x-small\b',node.get('style',''),re.I)
                 and re.fullmatch(r'Рис(?:унок|\.)\s*\d+(?:\..*)?',text(node),re.I)):
             node.drop_tree();counts['removed_rsdn_captions']+=1
     for node in main.xpath('./table[contains(concat(" ",normalize-space(@class)," ")," note ")]'):
+        if extended:break
         rows=node.xpath('./tr|./tbody/tr');cells=rows[0].xpath('./td') if len(rows)==1 else []
         allowed={'tbody','tr','td','strong','br','p','a','span','em','i','b','code','pre','ul','ol','li'}
         if (len(cells)!=1 or len(rows[0])!=1 or any(n.tag not in allowed for n in node.iterdescendants())

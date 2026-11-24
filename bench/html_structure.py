@@ -5,7 +5,7 @@
 from __future__ import annotations
 import re
 from urllib.parse import urlsplit
-from .cleaning import HTML_STRUCTURE_VERSION,HTML_EDITORIAL_VERSION,HTML_CONTENT_VERSION,HTML_ROLES_VERSION,HTML_PRE_TABLE_VERSION,_html_article,extracted_text
+from .cleaning import HTML_STRUCTURE_VERSION,HTML_EDITORIAL_VERSION,HTML_CONTENT_VERSION,HTML_ROLES_VERSION,HTML_PRE_TABLE_VERSION,HTML_CALLOUT_VERSION,_html_article,extracted_text
 
 
 def decode(content: bytes | str) -> str:
@@ -59,7 +59,7 @@ def table_grid(node):
     return '\n'.join(lines)
 
 
-def render(node,depth=0,*,preserve_tables=False):
+def render(node,depth=0,*,preserve_tables=False,preserve_list_blocks=False):
     """Хвост child.tail добавляет родитель: удаление блока не съедает продолжение."""
     tag=node.tag
     blocks=code_table_blocks(node)
@@ -76,12 +76,16 @@ def render(node,depth=0,*,preserve_tables=False):
     for child in node:
         tail=inline_space(child.tail)
         if tag in {'ul','ol'} and not tail.strip():tail=''
-        content+=render(child,child_depth,preserve_tables=preserve_tables)+tail
+        content+=render(child,child_depth,preserve_tables=preserve_tables,preserve_list_blocks=preserve_list_blocks)+tail
     if tag in {'h1','h2','h3','h4','h5','h6'}:
         value=' '.join(content.split())
         return '\n\n'+'#'*int(tag[1])+' '+value+'\n\n' if value else ''
     if tag=='li':
         content=content.strip()
+        if preserve_list_blocks:
+            lines=content.splitlines()
+            continuation=[' '*max(2*depth,len(re.match(r' *',line).group()))+line.lstrip(' ') if line.strip() else '' for line in lines[1:]]
+            content='\n'.join(lines[:1]+continuation)
         return '  '*max(0,depth-1)+'- '+content+'\n'
     if tag in {'ul','ol'}:return '\n\n'+content.strip('\n')+'\n\n'
     if tag in BLOCK:return '\n\n'+content.strip()+'\n\n'
@@ -421,8 +425,9 @@ def choose_title(tree,main,host):
     return nodes[0] if len(nodes)==1 else None
 
 
-def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,preserve_content=False,preserve_roles=False,preserve_pre_tables=False):
+def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,preserve_content=False,preserve_roles=False,preserve_pre_tables=False,preserve_callouts=False):
     from lxml import html
+    if preserve_callouts:preserve_pre_tables=True
     if preserve_pre_tables:preserve_roles=True
     if preserve_roles:preserve_content=True
     if preserve_content:preserve_editorial=True
@@ -440,7 +445,7 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,p
     quote_meta={}
     if preserve_roles and main is not None and host=='rsdn.org' and method=='profile:rsdn-article-body':
         from .rsdn_roles import repair
-        quote_meta.update(repair(main))
+        quote_meta.update(repair(main,extended=True) if preserve_callouts else repair(main))
     if preserve_editorial:
         # Отсутствие маркера не доказывает полноту. Наличие — отдельный отказ
         # источника, который нельзя исправить обработкой доступного отрывка.
@@ -464,16 +469,17 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,p
         if title_text and not any(line.lstrip('# ').strip()==title_text for line in clean.raw.splitlines()):
             clean=extracted_text('# '+title_text+'\n\n'+clean.raw,code_blocks=fallback.code_blocks)
     else:
-        text=render(main,preserve_tables=preserve_content).strip()
+        list_blocks=preserve_callouts and method=='profile:rsdn-article-body'
+        text=render(main,preserve_tables=preserve_content,preserve_list_blocks=list_blocks).strip()
         prefix=supplementary_blocks(tree,main,host)
         if preserve_editorial and method=='profile:snob-article-text':
             leads=main.getparent().xpath('./hgroup/h3[contains(concat(" ",normalize-space(@class)," ")," lead ")]')
             if len(leads)==1:prefix=render(leads[0]).strip()
         if prefix:text=prefix+'\n\n'+text
-        text='\n'.join(line.rstrip() if re.match(r'^ *- ',line) else line.strip() for line in text.splitlines())
+        text='\n'.join(line.rstrip() if (list_blocks and line.startswith('  ')) or re.match(r'^ *- ',line) else line.strip() for line in text.splitlines())
         if title_text and main is not title and main not in title.iterancestors():
             text='# '+title_text+'\n\n'+text
         clean=extracted_text(text,code_blocks=code_count(main))
-    version=HTML_PRE_TABLE_VERSION if preserve_pre_tables else HTML_ROLES_VERSION if preserve_roles else HTML_CONTENT_VERSION if preserve_content else HTML_EDITORIAL_VERSION if preserve_editorial else HTML_STRUCTURE_VERSION
+    version=HTML_CALLOUT_VERSION if preserve_callouts else HTML_PRE_TABLE_VERSION if preserve_pre_tables else HTML_ROLES_VERSION if preserve_roles else HTML_CONTENT_VERSION if preserve_content else HTML_EDITORIAL_VERSION if preserve_editorial else HTML_STRUCTURE_VERSION
     return clean,meta|quote_meta|dict(clean_version=version,extraction_method=method,
                            title_source='DOM-h1' if title_text else 'not-found',quality_review='pending')
