@@ -19,18 +19,19 @@ with patch.object(sys, 'path', [str(CC), *sys.path]):
 
 V5 = 'rsdn-primary-header-profile-v2'
 V6 = 'rsdn-primary-header-profile-translation-v3'
+V7 = 'primary-header-rsdn-habr-v4'
 
 
 class BuildProvenanceTest(unittest.TestCase):
-    def run_build(self, source, policy):
+    def run_build(self, source, policy, host='rsdn.org'):
         source = ('<html>'+source+'</html>').encode()
         config = dict(clean_version=VERSION, dependencies={}, max_records=5, candidate_limit=5,
                       seed='test', max_blocks=1, min_words=1, max_words=100, min_cyrillic=.5,
                       dedup_threshold=.85, target=1, subgenres=['technical'], domain_cap=1, author_cap=5)
         if policy is not None:
             config['provenance_policy'] = policy
-        domain = dict(domain='rsdn.org', snapshots='snapshot', url_pattern='.*', subgenre='technical')
-        record = dict(url='https://rsdn.org/article/example', filename='example.warc.gz', offset='0', length='1')
+        domain = dict(domain=host, snapshots='snapshot', url_pattern='.*', subgenre='technical')
+        record = dict(url='https://'+host+'/article/example', filename='example.warc.gz', offset='0', length='1')
         http = SimpleNamespace(bytes=0, requests=0, get=lambda *args: b'compressed')
         clean = CleanText('Это синтетический текст для проверки сборщика.', 'Это синтетический текст для проверки сборщика.')
         with tempfile.TemporaryDirectory() as temporary, patch.object(build, 'HTTP', return_value=http), \
@@ -69,6 +70,40 @@ class BuildProvenanceTest(unittest.TestCase):
         self.assertEqual((len(selected), calls), (1, 1))
         self.assertEqual(selected[0]['authors'], ['domain:rsdn.org'])
         self.assertEqual(summary.get('primary_header_translation_without_author', 0), 0)
+
+    def test_v7_habr_translation_is_rejected_before_cleaning_only_in_new_recipe(self):
+        source = '<body><article class="tm-article-presenter__content"><div class="tm-article-presenter__header"><div class="tm-article-presenter__snippet"><h1>Тестовая статья</h1><div class="tm-article-snippet__labels"><div class="tm-article-snippet__label tm-article-snippet__label_variant-translation">Перевод</div></div></div></div><div id="post-content-body">Текст.</div></article></body>'
+        before, summary_before, _, calls_before = self.run_build(source, V6, 'habr.com')
+        self.assertEqual((len(before),calls_before),(1,1))
+        self.assertNotIn('habr_primary_header_translation',summary_before)
+        after, summary, groups, calls = self.run_build(source, V7, 'habr.com')
+        self.assertEqual((after,groups,calls),([],[],0))
+        self.assertEqual(summary['habr_primary_header_translation'],1)
+        self.assertNotIn('primary_header_translation_without_author',summary)
+
+    def test_v7_unknown_habr_header_is_not_blanket_excluded(self):
+        source = '<body><article><h1>Тестовая статья</h1><div id="post-content-body"><p>Перевод слова в примере.</p></div></article></body>'
+        before, _, before_groups, _ = self.run_build(source,V6,'habr.com')
+        after, summary, groups, calls = self.run_build(source,V7,'habr.com')
+        self.assertEqual((len(after),calls),(1,1))
+        self.assertEqual(before_groups,groups)
+        self.assertEqual({k:v for k,v in before[0].items() if k not in {'path','raw_path'}},
+                         {k:v for k,v in after[0].items() if k not in {'path','raw_path'}})
+        self.assertNotIn('habr_primary_header_translation',summary)
+
+    def test_v7_preserves_rsdn_translation_and_profile_guards(self):
+        source = '<body><h5><span class="title">Перевод:</span><span class="value">Переводчик</span></h5><p>Текст.</p></body>'
+        after, summary, groups, calls = self.run_build(source,V7)
+        self.assertEqual((after,groups,calls),([],[],0))
+        self.assertEqual(summary['primary_header_translation_without_author'],1)
+        self.assertNotIn('habr_primary_header_translation',summary)
+        source = '<body><h5><span class="title">Автор:</span><span class="value"><a href="/account/info/1">Первый Автор</a></span></h5><p>Текст.</p></body>'
+        before, _, before_groups, _ = self.run_build(source,V6)
+        after, _, groups, _ = self.run_build(source,V7)
+        self.assertEqual(before_groups,groups)
+        for field in ['authors','author','author_quota_keys','sha256','raw_sha256']:
+            self.assertEqual(before[0][field],after[0][field])
+        self.assertTrue(after[0]['author_method'].startswith(V7+':'))
 
 
 if __name__=='__main__':
