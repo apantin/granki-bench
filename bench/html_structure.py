@@ -5,7 +5,7 @@
 from __future__ import annotations
 import re
 from urllib.parse import urlsplit
-from .cleaning import HTML_STRUCTURE_VERSION,HTML_EDITORIAL_VERSION,HTML_CONTENT_VERSION,HTML_ROLES_VERSION,HTML_PRE_TABLE_VERSION,HTML_CALLOUT_VERSION,HTML_CODE_TABLE_VERSION,HTML_BODY_VERSION,HTML_PUBLISHER_VERSION,HTML_KONTUR_VERSION,HTML_NETOLOGY_VERSION,_html_article,extracted_text
+from .cleaning import HTML_STRUCTURE_VERSION,HTML_EDITORIAL_VERSION,HTML_CONTENT_VERSION,HTML_ROLES_VERSION,HTML_PRE_TABLE_VERSION,HTML_CALLOUT_VERSION,HTML_CODE_TABLE_VERSION,HTML_BODY_VERSION,HTML_PUBLISHER_VERSION,HTML_KONTUR_VERSION,HTML_NETOLOGY_VERSION,HTML_LIVEINTERNET_VERSION,_html_article,extracted_text
 
 
 def decode(content: bytes | str) -> str:
@@ -437,8 +437,9 @@ def choose_title(tree,main,host):
     return nodes[0] if len(nodes)==1 else None
 
 
-def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,preserve_content=False,preserve_roles=False,preserve_pre_tables=False,preserve_callouts=False,preserve_code_tables=False,preserve_body_roles=False,preserve_publisher_roles=False,preserve_kontur_roles=False,preserve_netology_roles=False):
+def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,preserve_content=False,preserve_roles=False,preserve_pre_tables=False,preserve_callouts=False,preserve_code_tables=False,preserve_body_roles=False,preserve_publisher_roles=False,preserve_kontur_roles=False,preserve_netology_roles=False,preserve_liveinternet_roles=False):
     from lxml import html
+    if preserve_liveinternet_roles:preserve_netology_roles=True
     if preserve_netology_roles:preserve_kontur_roles=True
     if preserve_kontur_roles:preserve_publisher_roles=True
     if preserve_publisher_roles:preserve_body_roles=True
@@ -459,6 +460,20 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,p
     main,method=choose_main(tree,host)
     if preserve_editorial and main is None:main,method=choose_editorial_main(tree,host)
     quote_meta={}
+    liveinternet=None
+    if preserve_liveinternet_roles:
+        from .liveinternet_body import bind,repair
+        liveinternet=bind(tree,host,url)
+        quote_meta.update(repair(liveinternet))
+        quote_meta['bound_liveinternet_posts']=int(liveinternet is not None)
+        quote_meta['unresolved_liveinternet_posts']=int(host=='liveinternet.ru' and liveinternet is None)
+        quote_meta['retained_liveinternet_quoted_posts']=liveinternet['nested_quotes'] if liveinternet else 0
+        if liveinternet is not None:
+            if main is not liveinternet['main']:method='profile:liveinternet-post'
+            main=liveinternet['main']
+            meta=meta|dict(title=' '.join(liveinternet['title'].text_content().split()) if liveinternet['title'] is not None else None,
+                           date=liveinternet['date'],date_source='DOM-post-date' if liveinternet['date'] else 'not-found-or-ambiguous',
+                           metadata_title_source='DOM-post-title' if liveinternet['title'] is not None else 'not-found-or-ambiguous')
     kontur_prefix=None
     if preserve_netology_roles:
         from .netology_body import repair
@@ -493,6 +508,7 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,p
         quote_meta['removed_ad_widgets']=drop_content_ads(main,host) if main is not None else None
         quote_meta.update(content_table_status(main,preserve_code_tables=preserve_code_tables,preserve_group_headers=preserve_body_roles) if main is not None else dict(preserved_data_tables=None,unresolved_data_tables=None))
     title=choose_title(tree,main,host)
+    if liveinternet is not None:title=liveinternet['title']
     if preserve_netology_roles:
         from .netology_body import primary_title
         bound_title=primary_title(main,host)
@@ -516,6 +532,6 @@ def extract_candidate(content: bytes | str,url: str,*,preserve_editorial=False,p
         if title_text and main is not title and main not in title.iterancestors():
             text='# '+title_text+'\n\n'+text
         clean=extracted_text(text,code_blocks=code_count(main,preserve_code_tables=preserve_code_tables,preserve_group_headers=preserve_body_roles))
-    version=HTML_NETOLOGY_VERSION if preserve_netology_roles else HTML_KONTUR_VERSION if preserve_kontur_roles else HTML_PUBLISHER_VERSION if preserve_publisher_roles else HTML_BODY_VERSION if preserve_body_roles else HTML_CODE_TABLE_VERSION if preserve_code_tables else HTML_CALLOUT_VERSION if preserve_callouts else HTML_PRE_TABLE_VERSION if preserve_pre_tables else HTML_ROLES_VERSION if preserve_roles else HTML_CONTENT_VERSION if preserve_content else HTML_EDITORIAL_VERSION if preserve_editorial else HTML_STRUCTURE_VERSION
+    version=HTML_LIVEINTERNET_VERSION if preserve_liveinternet_roles else HTML_NETOLOGY_VERSION if preserve_netology_roles else HTML_KONTUR_VERSION if preserve_kontur_roles else HTML_PUBLISHER_VERSION if preserve_publisher_roles else HTML_BODY_VERSION if preserve_body_roles else HTML_CODE_TABLE_VERSION if preserve_code_tables else HTML_CALLOUT_VERSION if preserve_callouts else HTML_PRE_TABLE_VERSION if preserve_pre_tables else HTML_ROLES_VERSION if preserve_roles else HTML_CONTENT_VERSION if preserve_content else HTML_EDITORIAL_VERSION if preserve_editorial else HTML_STRUCTURE_VERSION
     return clean,meta|quote_meta|dict(clean_version=version,extraction_method=method,
                            title_source='DOM-h1' if title_text else 'not-found',quality_review='pending')
