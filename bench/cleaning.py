@@ -17,6 +17,7 @@ HTML_CODE_TABLE_VERSION = 'clean-v11-code-tables-candidate'
 HTML_BODY_VERSION = 'clean-v12-body-candidate'
 HTML_PUBLISHER_VERSION = 'clean-v13-publisher-candidate'
 HTML_KONTUR_VERSION = 'clean-v14-kontur-candidate'
+HTML_NETOLOGY_VERSION = 'clean-v15-netology-candidate'
 WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё]+(?:[-’'][A-Za-zА-Яа-яЁё]+)*|\d+(?:[.,]\d+)?")
 
 
@@ -102,6 +103,12 @@ def html_article_kontur_candidate(content: bytes | str, url: str = '') -> tuple[
     """Кандидат лидов/издательских ролей Контура; старые версии сохраняются."""
     from .html_structure import extract_candidate
     return extract_candidate(content, url, preserve_kontur_roles=True)
+
+
+def html_article_netology_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
+    """Отдельный кандидат явных ролей Нетологии; прежние версии не меняет."""
+    from .html_structure import extract_candidate
+    return extract_candidate(content, url, preserve_netology_roles=True)
 
 
 def html_article_inline_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
