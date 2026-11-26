@@ -26,6 +26,7 @@ from extraction import author_identity,metadata_exclusion,response_body
 from bench.provenance import rsdn_primary_header,rsdn_profile_constraints,rsdn_translation_marker,habr_translation_marker
 from bench.habr_provenance import habr_source_marker
 from bench.kontur_author_origin import kontur_author_origin,kontur_coauthors
+from bench.liveinternet_provenance import liveinternet_source_marker
 
 
 def canonical(url):
@@ -40,7 +41,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     if config['clean_version']!=VERSION:
         raise ValueError('Версия очистки не совпала с рецептом')
     provenance_policy=config.get('provenance_policy')
-    if 'provenance_policy' in config and provenance_policy not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6'}:raise ValueError('Неизвестная политика происхождения')
+    if 'provenance_policy' in config and provenance_policy not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7'}:raise ValueError('Неизвестная политика происхождения')
     limits=config.get('candidate_limits',{})
     if set(limits)-{r['domain'] for r in domains} or any(type(v) is not int or not 1<=v<=config['max_records'] for v in limits.values()):
         raise ValueError('Неверный доменный предел кандидатов')
@@ -86,14 +87,14 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                     compressed=http.get(BASE+record['filename'],int(record['offset']),int(record['length']))
                     payload=response_body(compressed)
                     provenance=rsdn_primary_header(payload,record['url']) if provenance_policy else None
-                    if provenance_policy in {'primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6'}:
+                    if provenance_policy in {'primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7'}:
                         origin=habr_source_marker(payload,record['url'])
                         if origin['status'] in {'explicit-translation','explicit-reprint'}:
                             counts['habr_source:'+origin['status']]+=1
                             counts['habr_source_role:'+origin['role']]+=1
                             continue
                     coauthors=None
-                    if provenance_policy=='primary-source-rsdn-habr-kontur-v6':
+                    if provenance_policy in {'primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7'}:
                         origin=kontur_author_origin(payload,record['url'])
                         if origin['status']=='unbound-preview-credit':
                             counts['kontur_unbound_preview_credit']+=1;continue
@@ -101,19 +102,24 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                         if coauthors['status']!='not-applicable':counts['kontur_coauthors:'+coauthors['status']]+=1
                     if provenance_policy=='primary-header-rsdn-habr-v4' and habr_translation_marker(payload,record['url'])=='explicit-translation':
                         counts['habr_primary_header_translation']+=1;continue
-                    translation=(rsdn_translation_marker(payload,record['url']) if provenance_policy in {'rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6'}
+                    translation=(rsdn_translation_marker(payload,record['url']) if provenance_policy in {'rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7'}
                                  else provenance['translation_status'] if provenance else None)
                     if translation=='explicit-translation':
                         if provenance['translation_status']!='explicit-translation':counts['primary_header_translation_without_author']+=1
                         counts['primary_header_translation']+=1;continue
                     clean,metadata=html_article(payload,record['url'])
+                    if provenance_policy=='primary-source-rsdn-habr-kontur-liveinternet-v7':
+                        origin=liveinternet_source_marker(payload,record['url'],extracted_raw=clean.raw)
+                        if origin['status']!='not-applicable':counts['liveinternet_source:'+origin['status']]+=1
+                        if origin['status'] in {'explicit-reprint','extracted-comment'}:
+                            counts['liveinternet_source_role:'+origin['role']]+=1;continue
                     author=author_identity(record['url'],metadata)
                     members=None;profile_keys=[]
                     if provenance and provenance['author_status']!='not-applicable':
                         members=sorted({author_identity(record['url'],{'author':a}) for a in provenance['authors']}) or ['domain:rsdn.org']
                         author='; '.join(members)
                         counts['author_provenance:'+provenance['author_status']]+=1
-                        if provenance_policy in {'rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6'}:
+                        if provenance_policy in {'rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7'}:
                             profile_keys=rsdn_profile_constraints(payload,record['url'])
                             if profile_keys:counts['profile_constrained_documents']+=1
                     elif coauthors and coauthors['status']=='explicit-coauthors':
