@@ -1,0 +1,236 @@
+{
+ "kind": "pairwise",
+ "protocol": "v1",
+ "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f",
+ "created": "2026-11-23T09:16:32.184474+00:00",
+ "bench_commit": "772d0ef54e23d85387269f4676929fdf0c50271b",
+ "derived_with_bench_commit": "fef302498e3852b037272a2af37d37488efd51db",
+ "judges": [
+  "opus",
+  "sonnet",
+  "haiku"
+ ],
+ "cli": {
+  "opus": "2.1.330 (Claude Code)",
+  "sonnet": "2.1.330 (Claude Code)",
+  "haiku": "2.1.330 (Claude Code)"
+ },
+ "imported": true,
+ "import_origin": "portable-subscription-v1",
+ "concurrency": 1,
+ "import_notes": "Preserved v1 votes and 300-character why; global CLI settings allowed by original runner. CLI list-price estimates are not subscription charges; window usage unknown.",
+ "inputs": {
+  "a": {
+   "path": "anchors/pilot-2026-11/texts/E4-02.md",
+   "sha256": "5f2ce8dabf21f571fe87499f041f9aa18b4e9e215058580f52b0feaf9807b525",
+   "words": 811
+  },
+  "b": {
+   "path": "anchors/pilot-2026-11/texts/bare-bike.md",
+   "sha256": "7b596d174652e77a3fe98668e250bc1e4724dcc8beeabdcb445308fc0d491279",
+   "words": 840
+  },
+  "posts": {
+   "path": "anchors/pilot-2026-11/posts/bike.md",
+   "sha256": "4a5019c22ff25f7cbba7749ef278805ce305b2e02afc6572d5fb103fd10259c1",
+   "words": 173
+  },
+  "reader": "городской велосипедист, который летом ездит на работу и думает, продолжать ли зимой и покупать ли шипы"
+ },
+ "votes": [
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Первый текст аккуратнее с данными. Он не делает выводов по трём ледовым поездкам на шипах, а падения и время прямо связывает с разницей в погоде. Второй местами перегибает: «на льду шипы быстрее», «ставить надо было первого декабря», «в три–пять раз на каждом покрытии» (хотя на сухом заносов на шипа",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "aff60de3c64b14ce2be70de7d4faa59503f980bc8934a34b698b31b2d8d7f110",
+   "elapsed_seconds": 12.742,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 8405,
+    "cache_read_input_tokens": 3474,
+    "output_tokens": 913
+   },
+   "cli_list_cost_usd": 0.0862028
+  },
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Первый текст звучит как автор: короткие фразы, сметная ирония и узнаваемая концовка «Никакой философии». Он сам снимает свою цифру «в семь раз» и сравнивает время при одинаковой температуре, хотя вывод «ставить с первого декабря» и средние «+3 минуты» по разной смеси покрытий натянуты. Второй строже",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "2cbb865ac70c17658f19321c5fa8f68051beafaa17d084ee9d7d43b231d7787a",
+   "elapsed_seconds": 8.925,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7589,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 683
+   },
+   "cli_list_cost_usd": 0.0745098
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "A"
+   },
+   "why": "Текст 2 ближе к голосу автора (сухие шутки, смета, финальное «Никакой философии») и полезнее читателю: в нём есть деньги и ясный вывод. Но он оверклеймит: «на каждом покрытии в 3–5 раз меньше заносов» не сходится с сухим покрытием, где было 0 против 0,2, «ставить надо было 1 декабря» держится на трё",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "aff60de3c64b14ce2be70de7d4faa59503f980bc8934a34b698b31b2d8d7f110",
+   "elapsed_seconds": 13.409,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7517,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1380
+   },
+   "cli_list_cost_usd": 0.0439369
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "=",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 1 звучит как автор (сметчик, «никакой философии», «если цифры поменяются — скажу»), честно разбирает влияние погоды и при этом даёт читателю понятное правило решения и расчёт в рублях и минутах. Текст 2 так же аккуратен с данными, но перегружен однотипными оговорками и повторами, суше по голос",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "2cbb865ac70c17658f19321c5fa8f68051beafaa17d084ee9d7d43b231d7787a",
+   "elapsed_seconds": 12.486,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7515,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1275
+   },
+   "cli_list_cost_usd": 0.0428789
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 2 ближе к голосу канала: в нём есть «сметчик во мне», «Никакой философии» и конкретная смета, а решение про шипы и цену падения сформулировано так, что читателю проще применить его к своему маршруту. Текст 1 честнее по данным, потому что аккуратнее оговаривает нерепрезентативность зимы и памят",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "aff60de3c64b14ce2be70de7d4faa59503f980bc8934a34b698b31b2d8d7f110",
+   "elapsed_seconds": 10.824,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 8339,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1909
+   },
+   "cli_list_cost_usd": 0.00262899
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "A",
+    "overall": "B"
+   },
+   "why": "Первый текст ближе к голосу автора: короткие сухие фразы, самоирония и возврат к «никакой философии» из старых постов. Второй честнее с данными (объезды, погода, память вместо прибора), но многословен и повторяет оговорки, поэтому в целом его публиковать не стал бы.",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "2cbb865ac70c17658f19321c5fa8f68051beafaa17d084ee9d7d43b231d7787a",
+   "elapsed_seconds": 11.902,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 8337,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 2074
+   },
+   "cli_list_cost_usd": 0.00271109
+  }
+ ],
+ "a_minus_b": {
+  "human": -1.0,
+  "voice": -1.0,
+  "honesty": 0.83,
+  "reader": -0.67,
+  "overall": -0.67
+ },
+ "spread": {
+  "human": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": -1.0
+   },
+   "stdev": 0.0
+  },
+  "voice": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": -1.0
+   },
+   "stdev": 0.0
+  },
+  "honesty": {
+   "per_model": {
+    "opus": 1.0,
+    "sonnet": 0.5,
+    "haiku": 1.0
+   },
+   "stdev": 0.24
+  },
+  "reader": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.47
+  },
+  "overall": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": 0.0,
+    "haiku": -1.0
+   },
+   "stdev": 0.47
+  }
+ },
+ "elapsed_seconds": 70.288
+}

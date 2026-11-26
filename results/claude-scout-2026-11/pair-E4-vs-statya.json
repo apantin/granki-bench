@@ -1,0 +1,236 @@
+{
+ "kind": "pairwise",
+ "protocol": "v1",
+ "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f",
+ "created": "2026-11-23T09:22:28.747879+00:00",
+ "bench_commit": "772d0ef54e23d85387269f4676929fdf0c50271b",
+ "derived_with_bench_commit": "fef302498e3852b037272a2af37d37488efd51db",
+ "judges": [
+  "opus",
+  "sonnet",
+  "haiku"
+ ],
+ "cli": {
+  "opus": "2.1.330 (Claude Code)",
+  "sonnet": "2.1.330 (Claude Code)",
+  "haiku": "2.1.330 (Claude Code)"
+ },
+ "imported": true,
+ "import_origin": "portable-subscription-v1",
+ "concurrency": 1,
+ "import_notes": "Preserved v1 votes and 300-character why; global CLI settings allowed by original runner. CLI list-price estimates are not subscription charges; window usage unknown.",
+ "inputs": {
+  "a": {
+   "path": "anchors/pilot-2026-11/texts/E4-02.md",
+   "sha256": "5f2ce8dabf21f571fe87499f041f9aa18b4e9e215058580f52b0feaf9807b525",
+   "words": 811
+  },
+  "b": {
+   "path": "anchors/pilot-2026-11/texts/statya-bike.md",
+   "sha256": "a8365b54f3f6368f3b5d2512a19879d141e441896f8ffe971ee501a84af95155",
+   "words": 851
+  },
+  "posts": {
+   "path": "anchors/pilot-2026-11/posts/bike.md",
+   "sha256": "4a5019c22ff25f7cbba7749ef278805ce305b2e02afc6572d5fb103fd10259c1",
+   "words": 173
+  },
+  "reader": "городской велосипедист, который летом ездит на работу и думает, продолжать ли зимой и покупать ли шипы"
+ },
+ "votes": [
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Второй текст живее и ближе к сухой сметной интонации автора. В нём есть конкретика: маршрут, километры, цена за километр, практичный совет вести таблицу. Первый честнее в оговорках: второй местами пережимает («шипы нужны», «пятикратная разница» по трём дням, «ставить надо было в декабре»). Но первый",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "c7927e067281095fcce01e681dcb9c2b9752dcb388763411bbbfb271ec0e24f9",
+   "elapsed_seconds": 9.437,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7607,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 723
+   },
+   "cli_list_cost_usd": 0.0754538
+  },
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Первый текст живее и ближе к автору: короткие фразы, сухая самоирония («Таблица посчитала», «Я сметчик, поэтому посчитал»), а читатель получает ясный вывод про лёд, оттепель и сроки установки. Второй честнее: он не выдаёт «пятикратную разницу» по трём дням и не говорит категорично «шипы нужны». Но о",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "f059662bf25f5441c716cb3d4b6095dd8b49b7b4efb66ceffd2ae24e0331df87",
+   "elapsed_seconds": 8.657,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7609,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 690
+   },
+   "cli_list_cost_usd": 0.0748098
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 2 написан живее и ближе к сухому, сметному голосу автора (\"Я сметчик, поэтому посчитал\"), а ещё даёт читателю ясные таблицы, стоимость за километр, рекомендации и совет по срокам. Текст 1 аккуратнее с данными и честнее про смешение погоды и шипов, но он тяжёлый, повторяется и в итоге не помога",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "c7927e067281095fcce01e681dcb9c2b9752dcb388763411bbbfb271ec0e24f9",
+   "elapsed_seconds": 11.411,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7537,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1115
+   },
+   "cli_list_cost_usd": 0.0413669
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 1 ближе к голосу автора (сметчик, пересчёт рубли за километр, история про падение, которое он не засчитал) и даёт читателю понятный вывод с советом про сроки, но местами смелее, чем позволяют три ледовых дня на шипах. Текст 2 аккуратнее с оговорками и честнее, но повторяет их слишком часто, пу",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "f059662bf25f5441c716cb3d4b6095dd8b49b7b4efb66ceffd2ae24e0331df87",
+   "elapsed_seconds": 10.661,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7539,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1154
+   },
+   "cli_list_cost_usd": 0.0417649
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "A",
+    "voice": "A",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "A"
+   },
+   "why": "Первый текст ближе к сухой интонации автора и честнее оговаривает, что выводы относятся к одной зиме и одному маршруту, без лишних обобщений. Второй полезнее как инструкция к решению (стоимость за километр, потери времени по покрытиям, шаблон таблицы), но звучит глаже и местами переобещает, например",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "c7927e067281095fcce01e681dcb9c2b9752dcb388763411bbbfb271ec0e24f9",
+   "elapsed_seconds": 9.747,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 8359,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1658
+   },
+   "cli_list_cost_usd": 0.0025074900000000002
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 1 ближе к голосу автора: в нём есть его сухая самоирония и прямая отсылка к «я сметчик, я посчитал», а сравнение стоимости за километр полезно читателю при выборе. Текст 2 честнее оговаривает смешение погоды, маршрута и недель, но повторяет оговорки и звучит суше, а в тексте 1 местами звучат б",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "f059662bf25f5441c716cb3d4b6095dd8b49b7b4efb66ceffd2ae24e0331df87",
+   "elapsed_seconds": 8.955,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 8361,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1389
+   },
+   "cli_list_cost_usd": 0.0023733900000000004
+  }
+ ],
+ "a_minus_b": {
+  "human": -0.67,
+  "voice": -0.67,
+  "honesty": 1.0,
+  "reader": -1.0,
+  "overall": -0.67
+ },
+ "spread": {
+  "human": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.47
+  },
+  "voice": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.47
+  },
+  "honesty": {
+   "per_model": {
+    "opus": 1.0,
+    "sonnet": 1.0,
+    "haiku": 1.0
+   },
+   "stdev": 0.0
+  },
+  "reader": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": -1.0
+   },
+   "stdev": 0.0
+  },
+  "overall": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.47
+  }
+ },
+ "elapsed_seconds": 58.868
+}

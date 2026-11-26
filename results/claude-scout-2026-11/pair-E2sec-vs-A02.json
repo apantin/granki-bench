@@ -1,0 +1,236 @@
+{
+ "kind": "pairwise",
+ "protocol": "v1",
+ "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f",
+ "created": "2026-11-23T09:24:21.519909+00:00",
+ "bench_commit": "772d0ef54e23d85387269f4676929fdf0c50271b",
+ "derived_with_bench_commit": "fef302498e3852b037272a2af37d37488efd51db",
+ "judges": [
+  "opus",
+  "sonnet",
+  "haiku"
+ ],
+ "cli": {
+  "opus": "2.1.330 (Claude Code)",
+  "sonnet": "2.1.330 (Claude Code)",
+  "haiku": "2.1.330 (Claude Code)"
+ },
+ "imported": true,
+ "import_origin": "portable-subscription-v1",
+ "concurrency": 1,
+ "import_notes": "Preserved v1 votes and 300-character why; global CLI settings allowed by original runner. CLI list-price estimates are not subscription charges; window usage unknown.",
+ "inputs": {
+  "a": {
+   "path": "anchors/pilot-2026-11/texts/E2-02-sections.md",
+   "sha256": "9f04b61f3b6384eb4cef25f8bb3cbdc67a200c6eb7d590b910632024c5823382",
+   "words": 788
+  },
+  "b": {
+   "path": "anchors/pilot-2026-11/texts/A-02-studs.md",
+   "sha256": "1b804f205dc439a77f45d4eec43cfdae190b8b348c2cd95483c664f60e8e92bb",
+   "words": 914
+  },
+  "posts": {
+   "path": "anchors/pilot-2026-11/posts/bike.md",
+   "sha256": "4a5019c22ff25f7cbba7749ef278805ce305b2e02afc6572d5fb103fd10259c1",
+   "words": 173
+  },
+  "reader": "городской велосипедист, который летом ездит на работу и думает, продолжать ли зимой и покупать ли шипы"
+ },
+ "votes": [
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "A",
+    "voice": "A",
+    "honesty": "=",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Первый текст короче и суше, без служебных связок вроде «Сначала про падения» и «Теперь про девять тысяч» и без трёхкратного повтора оговорки про разные недели, поэтому он ближе к рубленому голосу «Педалей и смет». По честности тексты равны: во втором больше полезного контекста (три морозные ледовые ",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "7de62076adf2562997bf73872b4519eca7b37446fef4dbfbcaa69a5be93da8a5",
+   "elapsed_seconds": 10.572,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7578,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 868
+   },
+   "cli_list_cost_usd": 0.07812179999999999
+  },
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "A",
+    "voice": "A",
+    "honesty": "B",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Второй текст плотнее и ближе к рубленому голосу автора («Поменялась резина. И погода.»); в первом трижды повторяется оговорка про разные недели зимы, и он читается как механический. Зато первый осторожнее с выводами: прямо говорит, что неизвестно, как шипы держат лёд около нуля, тогда как второй утв",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "90f80b053713425ab6b0b4d7a8537fed553050aad3df054e2886efb5dc24e7bb",
+   "elapsed_seconds": 7.427,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7582,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 573
+   },
+   "cli_list_cost_usd": 0.0722538
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "A",
+    "voice": "A",
+    "honesty": "A",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Текст 1 короче и суше, без навигационных фраз вроде «Теперь про девять тысяч» и без многократных повторов оговорки про «разные недели», как в тексте 2. Он же заканчивается практичным условием для читателя («если на маршруте бывает лёд — брал бы, если накат — не знаю»), а в тексте 2 есть ничем не под",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "7de62076adf2562997bf73872b4519eca7b37446fef4dbfbcaa69a5be93da8a5",
+   "elapsed_seconds": 10.548,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7510,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1148
+   },
+   "cli_list_cost_usd": 0.0415889
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "B",
+    "reader": "=",
+    "overall": "B"
+   },
+   "why": "Текст 1 ближе к сухому голосу автора (короткие фразы, «если честно, это была жадность»), с меньшим числом тире и гладких оборотов, а оговорки у него точнее: есть 16 ледовых поездок из 54, а у текста 2 «три объезда» противоречат дальнейшему «две из трёх». Текст 2 удобнее финальным правилом «если быва",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "90f80b053713425ab6b0b4d7a8537fed553050aad3df054e2886efb5dc24e7bb",
+   "elapsed_seconds": 9.196,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7512,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 979
+   },
+   "cli_list_cost_usd": 0.039906899999999995
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "A",
+    "voice": "A",
+    "honesty": "A",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Текст 2 добавляет детали, которых нет в дневнике: время с велокомпьютера, даты падений 10 декабря и 13 января, и три морозные ледовые поездки без шипов. Текст 1 держится данных и ближе к сухому голосу автора, с короткими фразами и без пересказа структуры.",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "7de62076adf2562997bf73872b4519eca7b37446fef4dbfbcaa69a5be93da8a5",
+   "elapsed_seconds": 7.992,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 8332,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1431
+   },
+   "cli_list_cost_usd": 0.0023885900000000003
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "A",
+    "voice": "A",
+    "honesty": "B",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Текст 2 живее, с более короткими ироничными фразами вроде «похожи на готовый ответ», и даёт читателю конкретнее вывод: «если на маршруте бывает лёд, я бы брал». Текст 1 честнее, потому что текст 2 добавляет температуры двух падений (−11° и −16°), которых нет в исходных данных.",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "90f80b053713425ab6b0b4d7a8537fed553050aad3df054e2886efb5dc24e7bb",
+   "elapsed_seconds": 11.211,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 8334,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 2254
+   },
+   "cli_list_cost_usd": 0.00280049
+  }
+ ],
+ "a_minus_b": {
+  "human": 0.67,
+  "voice": 0.67,
+  "honesty": -0.17,
+  "reader": 0.83,
+  "overall": 0.67
+ },
+ "spread": {
+  "human": {
+   "per_model": {
+    "opus": 1.0,
+    "sonnet": 0.0,
+    "haiku": 1.0
+   },
+   "stdev": 0.47
+  },
+  "voice": {
+   "per_model": {
+    "opus": 1.0,
+    "sonnet": 0.0,
+    "haiku": 1.0
+   },
+   "stdev": 0.47
+  },
+  "honesty": {
+   "per_model": {
+    "opus": -0.5,
+    "sonnet": 0.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.24
+  },
+  "reader": {
+   "per_model": {
+    "opus": 1.0,
+    "sonnet": 0.5,
+    "haiku": 1.0
+   },
+   "stdev": 0.24
+  },
+  "overall": {
+   "per_model": {
+    "opus": 1.0,
+    "sonnet": 0.0,
+    "haiku": 1.0
+   },
+   "stdev": 0.47
+  }
+ },
+ "elapsed_seconds": 56.946
+}
