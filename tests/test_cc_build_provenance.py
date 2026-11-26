@@ -22,10 +22,11 @@ V6 = 'rsdn-primary-header-profile-translation-v3'
 V7 = 'primary-header-rsdn-habr-v4'
 V8 = 'primary-source-rsdn-habr-v5'
 V9 = 'primary-source-rsdn-habr-kontur-v6'
+V10 = 'primary-source-rsdn-habr-kontur-liveinternet-v7'
 
 
 class BuildProvenanceTest(unittest.TestCase):
-    def run_build(self, source, policy, host='rsdn.org'):
+    def run_build(self, source, policy, host='rsdn.org',url=None):
         source = ('<html>'+source+'</html>').encode()
         config = dict(clean_version=VERSION, dependencies={}, max_records=5, candidate_limit=5,
                       seed='test', max_blocks=1, min_words=1, max_words=100, min_cyrillic=.5,
@@ -33,7 +34,7 @@ class BuildProvenanceTest(unittest.TestCase):
         if policy is not None:
             config['provenance_policy'] = policy
         domain = dict(domain=host, snapshots='snapshot', url_pattern='.*', subgenre='technical')
-        record = dict(url='https://'+host+'/article/example', filename='example.warc.gz', offset='0', length='1')
+        record = dict(url=url or 'https://'+host+'/article/example', filename='example.warc.gz', offset='0', length='1')
         http = SimpleNamespace(bytes=0, requests=0, get=lambda *args: b'compressed')
         clean = CleanText('Это синтетический текст для проверки сборщика.', 'Это синтетический текст для проверки сборщика.')
         with tempfile.TemporaryDirectory() as temporary, patch.object(build, 'HTTP', return_value=http), \
@@ -139,32 +140,81 @@ class BuildProvenanceTest(unittest.TestCase):
         data=json.dumps({'@type':'Article','headline':'Пример','author':{'@type':'Organization','name':'Компания'}},ensure_ascii=False)
         source='<head><title>Пример</title><script type="application/ld+json">'+data+'</script></head><body><div class="content-block_article-announce"><h1>Пример</h1></div><div id="ArticleItem"><p>Авторский текст.</p></div><article class="tile_articlePreview"><span class="byLineBlock-author">Антон Примеров</span></article></body>'
         before,_,_,calls=self.run_build(source,V8,'kontur.ru');self.assertEqual((len(before),calls),(1,1))
-        after,summary,groups,calls=self.run_build(source,V9,'kontur.ru')
-        self.assertEqual((after,groups,calls),([],[],0));self.assertEqual(summary['kontur_unbound_preview_credit'],1)
+        for policy in [V9,V10]:
+            after,summary,groups,calls=self.run_build(source,policy,'kontur.ru')
+            self.assertEqual((after,groups,calls),([],[],0));self.assertEqual(summary['kontur_unbound_preview_credit'],1)
         source=source.replace('<h1>Пример</h1>','<h1>Пример</h1><span class="article-announce-autor-block__name">Антон Примеров</span>')
-        after,summary,_,calls=self.run_build(source,V9,'kontur.ru')
-        self.assertEqual((len(after),calls),(1,1));self.assertNotIn('kontur_unbound_preview_credit',summary)
+        for policy in [V9,V10]:
+            after,summary,_,calls=self.run_build(source,policy,'kontur.ru')
+            self.assertEqual((len(after),calls),(1,1));self.assertNotIn('kontur_unbound_preview_credit',summary)
 
     def test_v9_joint_credit_sets_each_quota_member_without_changing_cleaned_bytes(self):
         source='<body><div class="content-block_article-announce"><h1>Пример</h1><span class="article-announce-autor-block__name">Ирина Проверова</span></div><div id="ArticleItem"><p><em>Ирина Проверова и Михаил Тестов, эксперты системы интернет-отчетности Контур.Экстерн</em></p></div></body>'
-        before,_,_,_=self.run_build(source,V8,'kontur.ru');after,summary,_,calls=self.run_build(source,V9,'kontur.ru')
-        self.assertEqual((len(after),calls),(1,1))
-        self.assertEqual(after[0]['authors'],['ирина проверова','михаил тестов'])
-        self.assertEqual(after[0]['author'],'ирина проверова; михаил тестов')
-        self.assertEqual(summary['kontur_coauthors:explicit-coauthors'],1)
-        self.assertEqual(after[0]['author_method'],V9+':explicit-coauthors')
-        for key in ['sha256','raw_sha256']:self.assertEqual(before[0][key],after[0][key])
+        before,_,_,_=self.run_build(source,V8,'kontur.ru')
+        for policy in [V9,V10]:
+            after,summary,_,calls=self.run_build(source,policy,'kontur.ru')
+            self.assertEqual((len(after),calls),(1,1))
+            self.assertEqual(after[0]['authors'],['ирина проверова','михаил тестов'])
+            self.assertEqual(after[0]['author'],'ирина проверова; михаил тестов')
+            self.assertEqual(summary['kontur_coauthors:explicit-coauthors'],1)
+            self.assertEqual(after[0]['author_method'],policy+':explicit-coauthors')
+            for key in ['sha256','raw_sha256']:self.assertEqual(before[0][key],after[0][key])
 
     def test_v9_preserves_rsdn_habr_gates_and_existing_profile_constraints(self):
         variants=[('rsdn.org','<body><h5><span class="title">Перевод:</span><span class="value">Переводчик</span></h5></body>','primary_header_translation'),
                   ('habr.com','<body><article class="post post_full"><div class="post__wrapper"><h1>Пример</h1><div id="post-content-body"><p>Предлагаю перевод интересной статьи о формате.</p></div></div></article></body>','habr_source:explicit-translation')]
         for host,source,counter in variants:
-            with self.subTest(host=host):
-                after,summary,groups,calls=self.run_build(source,V9,host)
-                self.assertEqual((after,groups,calls),([],[],0));self.assertEqual(summary[counter],1)
+            for policy in [V9,V10]:
+                with self.subTest(host=host,policy=policy):
+                    after,summary,groups,calls=self.run_build(source,policy,host)
+                    self.assertEqual((after,groups,calls),([],[],0));self.assertEqual(summary[counter],1)
         source='<body><h5><span class="title">Автор:</span><span class="value"><a href="/account/info/1">Первый Автор</a></span></h5><p>Текст.</p></body>'
-        before,_,_,_=self.run_build(source,V8);after,_,_,_=self.run_build(source,V9)
-        for field in ['author','authors','author_quota_keys','sha256','raw_sha256']:self.assertEqual(before[0][field],after[0][field])
+        before,_,_,_=self.run_build(source,V8)
+        for policy in [V9,V10]:
+            after,_,_,_=self.run_build(source,policy)
+            for field in ['author','authors','author_quota_keys','sha256','raw_sha256']:self.assertEqual(before[0][field],after[0][field])
+
+    def liveinternet(self,main,comments=''):
+        return ('<body><div class="CONBL" id="post42"><h1 class="ZAG">Пример</h1>'
+                '<span class="GL_MAR5B"><a href="/journal_post.php?fjid=1&amp;fpid=42&amp;action=q_add">Цитировать</a></span>'
+                '<div class="MESS">'+main+'</div></div>'+comments+'</body>')
+
+    def whole_quote(self,identity='2',account='other'):
+        return ('<div class="MESS QUOT_T"><div class="QUOT_B"><b>Цитата сообщения '
+                '<a href="/users/'+account+'/profile">Автор</a></b><a href="/users/'+account+'/post41/">Прочитать целиком</a>'
+                '<a href="/journal_post.php?fjid='+identity+'&amp;fpid=41&amp;action=q_add">Цитировать</a>'
+                '<p>Это синтетический текст для проверки сборщика.</p></div></div>')
+
+    def run_liveinternet(self,main,comments='',policy=V10):
+        return self.run_build(self.liveinternet(main,comments),policy,'liveinternet.ru',url='https://www.liveinternet.ru/users/example/post42/')
+
+    def test_v10_whole_foreign_post_is_rejected_only_in_new_policy(self):
+        for policy in [None,V5,V6,V7,V8,V9]:
+            selected,summary,_,calls=self.run_liveinternet(self.whole_quote(),policy=policy)
+            self.assertEqual((len(selected),calls),(1,1));self.assertNotIn('liveinternet_source:explicit-reprint',summary)
+        selected,summary,groups,calls=self.run_liveinternet(self.whole_quote())
+        self.assertEqual((selected,groups,calls),([],[],1));self.assertEqual(summary['liveinternet_source:explicit-reprint'],1)
+
+    def test_v10_entire_old_extraction_in_comment_is_rejected_without_second_extractor(self):
+        comment='<div class="COMR">Это синтетический текст для проверки сборщика.</div>'
+        before,_,_,_=self.run_liveinternet('<p>Свой короткий пост.</p>',comment,policy=V9)
+        selected,summary,groups,calls=self.run_liveinternet('<p>Свой короткий пост.</p>',comment)
+        self.assertEqual(len(before),1);self.assertEqual((selected,groups,calls),([],[],1))
+        self.assertEqual(summary['liveinternet_source:extracted-comment'],1)
+
+    def test_v10_primary_copy_self_quote_and_unknown_boundary_are_not_blanket_excluded(self):
+        text='Это синтетический текст для проверки сборщика.'
+        cases=[('<p>'+text+'</p>','<div class="COMR">'+text+'</div>','no-explicit-source-marker'),
+               (self.whole_quote('1','example'),'','self-quoted-post'),
+               ('<p>Свои замечания.</p>'+self.whole_quote(),'','unresolved'),
+               ('<div class="MESS">Неизвестная вложенность.</div>','<div class="COMR">'+text+'</div>','unresolved')]
+        for main,comments,status in cases:
+            with self.subTest(status=status):
+                before,_,before_groups,_=self.run_liveinternet(main,comments,policy=V9)
+                after,summary,groups,calls=self.run_liveinternet(main,comments)
+                self.assertEqual((len(after),calls),(1,1));self.assertEqual(before_groups,groups)
+                self.assertEqual(summary['liveinternet_source:'+status],1)
+                for field in ['author','sha256','raw_sha256']:self.assertEqual(before[0][field],after[0][field])
 
 
 if __name__=='__main__':
