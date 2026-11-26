@@ -24,6 +24,8 @@ class NormGuardTest(unittest.TestCase):
         self.assertEqual(check('primary-source-rsdn-habr-kontur-v6'),[])
         self.assertEqual(check('primary-header-rsdn-habr-v4'),[])
         self.assertEqual(check('primary-source-rsdn-habr-v5'),[])
+        self.assertEqual(check('primary-source-rsdn-habr-kontur-liveinternet-v7'),[])
+        self.assertEqual(check('primary-source-series-v8'),[])
         for policy in (None,True,'private-file','unknown'):
             self.assertTrue(check(policy))
 
@@ -41,6 +43,15 @@ class NormGuardTest(unittest.TestCase):
                            ('norms/article-blog/config.json', b'{"salt":"private"}'),
                            ('norms/article-blog/domains.csv', b'domain,source_url\n')]:
             self.assertTrue(guard.norm_problems(path, data))
+
+    def test_pause_allows_only_unique_platform_domains(self):
+        import json
+        def check(value):return guard.norm_problems('norms/article-blog/config.json',json.dumps({'paused_domains':value}).encode())
+        for value in [[],['telegra.ph','teletype.in']]:
+            self.assertEqual(check(value),[])
+        for value in [None,True,{},'telegra.ph',[True],[{}],['telegra.ph','telegra.ph'],
+                      ['writer.livejournal.com'],['teletype.in/@writer'],['https://telegra.ph'],['.example.org']]:
+            with self.subTest(value=value):self.assertTrue(check(value))
 
     def test_results_still_checked(self):
         self.assertTrue(guard.is_result('result.json', b'{"kind":"pairwise"}'))

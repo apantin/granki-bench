@@ -23,16 +23,19 @@ V7 = 'primary-header-rsdn-habr-v4'
 V8 = 'primary-source-rsdn-habr-v5'
 V9 = 'primary-source-rsdn-habr-kontur-v6'
 V10 = 'primary-source-rsdn-habr-kontur-liveinternet-v7'
+V11 = 'primary-source-series-v8'
 
 
 class BuildProvenanceTest(unittest.TestCase):
-    def run_build(self, source, policy, host='rsdn.org',url=None):
+    def run_build(self, source, policy, host='rsdn.org',url=None,paused_domains=None):
         source = ('<html>'+source+'</html>').encode()
         config = dict(clean_version=VERSION, dependencies={}, max_records=5, candidate_limit=5,
                       seed='test', max_blocks=1, min_words=1, max_words=100, min_cyrillic=.5,
                       dedup_threshold=.85, target=1, subgenres=['technical'], domain_cap=1, author_cap=5)
         if policy is not None:
             config['provenance_policy'] = policy
+        if paused_domains is not None:
+            config['paused_domains'] = paused_domains
         domain = dict(domain=host, snapshots='snapshot', url_pattern='.*', subgenre='technical')
         record = dict(url=url or 'https://'+host+'/article/example', filename='example.warc.gz', offset='0', length='1')
         http = SimpleNamespace(bytes=0, requests=0, get=lambda *args: b'compressed')
@@ -140,18 +143,18 @@ class BuildProvenanceTest(unittest.TestCase):
         data=json.dumps({'@type':'Article','headline':'Пример','author':{'@type':'Organization','name':'Компания'}},ensure_ascii=False)
         source='<head><title>Пример</title><script type="application/ld+json">'+data+'</script></head><body><div class="content-block_article-announce"><h1>Пример</h1></div><div id="ArticleItem"><p>Авторский текст.</p></div><article class="tile_articlePreview"><span class="byLineBlock-author">Антон Примеров</span></article></body>'
         before,_,_,calls=self.run_build(source,V8,'kontur.ru');self.assertEqual((len(before),calls),(1,1))
-        for policy in [V9,V10]:
+        for policy in [V9,V10,V11]:
             after,summary,groups,calls=self.run_build(source,policy,'kontur.ru')
             self.assertEqual((after,groups,calls),([],[],0));self.assertEqual(summary['kontur_unbound_preview_credit'],1)
         source=source.replace('<h1>Пример</h1>','<h1>Пример</h1><span class="article-announce-autor-block__name">Антон Примеров</span>')
-        for policy in [V9,V10]:
+        for policy in [V9,V10,V11]:
             after,summary,_,calls=self.run_build(source,policy,'kontur.ru')
             self.assertEqual((len(after),calls),(1,1));self.assertNotIn('kontur_unbound_preview_credit',summary)
 
     def test_v9_joint_credit_sets_each_quota_member_without_changing_cleaned_bytes(self):
         source='<body><div class="content-block_article-announce"><h1>Пример</h1><span class="article-announce-autor-block__name">Ирина Проверова</span></div><div id="ArticleItem"><p><em>Ирина Проверова и Михаил Тестов, эксперты системы интернет-отчетности Контур.Экстерн</em></p></div></body>'
         before,_,_,_=self.run_build(source,V8,'kontur.ru')
-        for policy in [V9,V10]:
+        for policy in [V9,V10,V11]:
             after,summary,_,calls=self.run_build(source,policy,'kontur.ru')
             self.assertEqual((len(after),calls),(1,1))
             self.assertEqual(after[0]['authors'],['ирина проверова','михаил тестов'])
@@ -164,13 +167,13 @@ class BuildProvenanceTest(unittest.TestCase):
         variants=[('rsdn.org','<body><h5><span class="title">Перевод:</span><span class="value">Переводчик</span></h5></body>','primary_header_translation'),
                   ('habr.com','<body><article class="post post_full"><div class="post__wrapper"><h1>Пример</h1><div id="post-content-body"><p>Предлагаю перевод интересной статьи о формате.</p></div></div></article></body>','habr_source:explicit-translation')]
         for host,source,counter in variants:
-            for policy in [V9,V10]:
+            for policy in [V9,V10,V11]:
                 with self.subTest(host=host,policy=policy):
                     after,summary,groups,calls=self.run_build(source,policy,host)
                     self.assertEqual((after,groups,calls),([],[],0));self.assertEqual(summary[counter],1)
         source='<body><h5><span class="title">Автор:</span><span class="value"><a href="/account/info/1">Первый Автор</a></span></h5><p>Текст.</p></body>'
         before,_,_,_=self.run_build(source,V8)
-        for policy in [V9,V10]:
+        for policy in [V9,V10,V11]:
             after,_,_,_=self.run_build(source,policy)
             for field in ['author','authors','author_quota_keys','sha256','raw_sha256']:self.assertEqual(before[0][field],after[0][field])
 
@@ -187,6 +190,43 @@ class BuildProvenanceTest(unittest.TestCase):
 
     def run_liveinternet(self,main,comments='',policy=V10):
         return self.run_build(self.liveinternet(main,comments),policy,'liveinternet.ru',url='https://www.liveinternet.ru/users/example/post42/')
+
+    def test_paused_sources_do_not_reach_index_network_or_extraction(self):
+        for host in ['telegra.ph','teletype.in']:
+            with self.subTest(host=host), patch.object(build,'candidates',side_effect=AssertionError('index requested')), \
+                 patch.object(build,'response_body',side_effect=AssertionError('WARC requested')):
+                selected,summary,groups,calls=self.run_build('<body>Пример.</body>',V11,host,paused_domains=[host])
+                self.assertEqual((selected,groups,calls),([],[],0))
+                self.assertEqual(summary['paused_domain:'+host],1)
+                self.assertEqual(summary.get('warc_attempts',0),0)
+        before,_,groups_before,_=self.run_build('<body>Пример.</body>',V10)
+        after,_,groups_after,_=self.run_build('<body>Пример.</body>',V11,paused_domains=[])
+        self.assertEqual(groups_before,groups_after)
+        self.assertEqual(before[0]['sha256'],after[0]['sha256'])
+
+    def test_invalid_pause_fails_before_network(self):
+        for value in ['rsdn.org',[True],['unknown.org'],['rsdn.org','rsdn.org'],[{}]]:
+            with self.subTest(value=value), patch.object(build,'HTTP',side_effect=AssertionError('network initialized')):
+                with self.assertRaises(ValueError):
+                    self.run_build('<body>Пример.</body>',V11,paused_domains=value)
+
+    def test_v11_series_navigation_does_not_hide_whole_reprint(self):
+        footer=('<blockquote><b>Серия сообщений "<a href="/users/example/rubric/7/">Серия</a>":</b><br>'
+                'Часть 1 - <a href="/users/example/post40/">Другой пост</a><br>'
+                'Часть 2 - Пример<br></blockquote>')
+        main=self.whole_quote()+footer
+        old,_,_,calls=self.run_liveinternet(main,policy=V10)
+        self.assertEqual((len(old),calls),(1,1))
+        selected,summary,groups,calls=self.run_liveinternet(main,policy=V11)
+        self.assertEqual((selected,groups,calls),([],[],1))
+        self.assertEqual(summary['liveinternet_source:explicit-reprint'],1)
+        self.assertEqual(summary['liveinternet_source_role:whole-quoted-post-of-other-publisher-id; known-series-navigation-only'],1)
+        for guarded in ['<p>Мои замечания.</p>'+main,self.whole_quote('1','example')+footer]:
+            before,_,before_groups,_=self.run_liveinternet(guarded,policy=V10)
+            after,_,after_groups,calls=self.run_liveinternet(guarded,policy=V11)
+            self.assertEqual((len(after),calls),(1,1))
+            self.assertEqual(before_groups,after_groups)
+            self.assertEqual(before[0]['raw_sha256'],after[0]['raw_sha256'])
 
     def test_v10_whole_foreign_post_is_rejected_only_in_new_policy(self):
         for policy in [None,V5,V6,V7,V8,V9]:
