@@ -86,11 +86,17 @@ def norm_problems(path: str, data: bytes) -> list[str]:
             return ['неверный JSON конфигурации']
         allowed = {'version', 'seed', 'snapshots', 'target', 'min_words', 'max_words', 'min_cyrillic',
                    'domain_cap', 'author_cap', 'dedup_threshold', 'clean_version', 'max_records',
-                   'index_method', 'candidate_limit', 'candidate_limits', 'max_blocks', 'subgenres', 'dependencies', 'provenance_policy'}
+                   'index_method', 'candidate_limit', 'candidate_limits', 'paused_domains', 'max_blocks', 'subgenres', 'dependencies', 'provenance_policy'}
         if not isinstance(config, dict) or set(config) - allowed:
             return ['недопустимые поля конфигурации нормы']
-        if 'provenance_policy' in config and config['provenance_policy'] not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7'}:
+        if 'provenance_policy' in config and config['provenance_policy'] not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7','primary-source-series-v8'}:
             return ['неизвестная политика происхождения нормы']
+        paused=config.get('paused_domains',[])
+        if not isinstance(paused,list) or any(not isinstance(k,str) or
+                not re.fullmatch(r'[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}',k) or
+                any(k.endswith('.'+p) for p in ('livejournal.com','blogspot.com','liveinternet.ru','diary.ru','teletype.in'))
+                for k in paused) or len(set(paused))!=len(paused):
+            return ['пауза источников должна содержать разные общие домены без профилей']
         limits=config.get('candidate_limits',{})
         if not isinstance(limits,dict) or any(not re.fullmatch(r'[a-z0-9.-]+\.[a-z]{2,}',k) or
                 any(k.endswith('.'+p) for p in ('livejournal.com','blogspot.com','liveinternet.ru','diary.ru','teletype.in')) or
