@@ -1,0 +1,236 @@
+{
+ "kind": "pairwise",
+ "protocol": "v1",
+ "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f",
+ "created": "2026-11-23T09:23:27.006109+00:00",
+ "bench_commit": "772d0ef54e23d85387269f4676929fdf0c50271b",
+ "derived_with_bench_commit": "fef302498e3852b037272a2af37d37488efd51db",
+ "judges": [
+  "opus",
+  "sonnet",
+  "haiku"
+ ],
+ "cli": {
+  "opus": "2.1.330 (Claude Code)",
+  "sonnet": "2.1.330 (Claude Code)",
+  "haiku": "2.1.330 (Claude Code)"
+ },
+ "imported": true,
+ "import_origin": "portable-subscription-v1",
+ "concurrency": 1,
+ "import_notes": "Preserved v1 votes and 300-character why; global CLI settings allowed by original runner. CLI list-price estimates are not subscription charges; window usage unknown.",
+ "inputs": {
+  "a": {
+   "path": "anchors/pilot-2026-11/texts/B-01-ci.md",
+   "sha256": "a5374fa08f11b8c74f6c73637045163ec9f43295c12327c3565d4a487adf61fc",
+   "words": 799
+  },
+  "b": {
+   "path": "anchors/pilot-2026-11/texts/statya-ci.md",
+   "sha256": "93dc9105ec26e8f341f1e82097bc611fe8af96725283285193042c1441b056c2",
+   "words": 697
+  },
+  "posts": {
+   "path": "anchors/pilot-2026-11/posts/ci.md",
+   "sha256": "668121cd12eb62dc614c128cbcfecfaf71e473ea70b2446f1e6ee77eb4fae8f8",
+   "words": 199
+  },
+  "reader": "инженеры соседних команд и техлиды, которые решают, внедрять ли кэш зависимостей в CI и чего от него ждать"
+ },
+ "votes": [
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Второй текст звучит как Марина: самоирония, история про поспешную цифру в канале и практичный чек-лист, а первый сухой, повторяется и читается как машинный отчёт. Зато первый аккуратнее с данными: второй приписывает весь шаг 8,4→5,6 мин железу, объясняет медленные промахи без проверки и оставляет пл",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "551c629a963e237854fdee8ff59072623d112a03fc5eb8307ecda9db88f035f4",
+   "elapsed_seconds": 8.819,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7581,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 656
+   },
+   "cli_list_cost_usd": 0.0739058
+  },
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Первый текст звучит как Марина: короткие фразы, самоирония, честное признание своей ошибки в начале и практичный чек-лист, а второй написан канцелярским протокольным языком с повторами и секундами вместо минут. Зато второй аккуратнее с данными: он не приписывает переход с 8,4 до 5,6 минуты одному же",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "400b490cfb8d3f3510fe14cb5d187b44e53844dee1bf2ee3d0f4166a3e6b4e35",
+   "elapsed_seconds": 8.754,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7583,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 741
+   },
+   "cli_list_cost_usd": 0.0756218
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "A"
+   },
+   "why": "Текст 2 ближе к живому голосу Марины (самоирония, «я теперь умею», чек-лист) и практичнее для читателя, но приписывает прирост с 8,4 до 5,6 минуты «железу» и «ещё полтора раза» при смешанных изменениях, а ещё содержит незакрытые заглушки [уточнить…] и [здесь нужна ссылка]. Текст 1 суше и перегружен ",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "551c629a963e237854fdee8ff59072623d112a03fc5eb8307ecda9db88f035f4",
+   "elapsed_seconds": 8.891,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7505,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 895
+   },
+   "cli_list_cost_usd": 0.0390389
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 1 написан живым голосом Марины, с её самоиронией и признанием собственных ошибок в оценках, и даёт читателю практичный чек-лист. Но он приписывает ускорение с 8,4 до 5,6 минуты железу, хотя в те недели менялось и другое, и содержит незакрытые заглушки; текст 2 честнее с данными, но выглядит су",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "400b490cfb8d3f3510fe14cb5d187b44e53844dee1bf2ee3d0f4166a3e6b4e35",
+   "elapsed_seconds": 9.196,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7509,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 912
+   },
+   "cli_list_cost_usd": 0.0392249
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "A"
+   },
+   "why": "Текст 2 ближе к голосу Марины и человечнее: в нём есть личные признания вроде «я поторопилась» и сухой юмор. Но в нём остались незаполненные плейсхолдеры в квадратных скобках, слово «средняя» перепутано с медианой, а текст 1 аккуратнее с ограничениями и данными, поэтому его я бы и опубликовал.",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "551c629a963e237854fdee8ff59072623d112a03fc5eb8307ecda9db88f035f4",
+   "elapsed_seconds": 9.543,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 8329,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1615
+   },
+   "cli_list_cost_usd": 0.00247999
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "=",
+    "overall": "A"
+   },
+   "why": "Первый текст звучит как живой голос Марины: от первого лица, с самоиронией и короткими фразами, как в её старых постах. Второй честнее по данным: он явно называет выборки, неполные сравнения и то, что не измерено, а в первом текст оставил незаполненные плейсхолдеры и цифру «9 минут с учётом промахов",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "400b490cfb8d3f3510fe14cb5d187b44e53844dee1bf2ee3d0f4166a3e6b4e35",
+   "elapsed_seconds": 7.551,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 8333,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1098
+   },
+   "cli_list_cost_usd": 0.00222229
+  }
+ ],
+ "a_minus_b": {
+  "human": -1.0,
+  "voice": -1.0,
+  "honesty": 1.0,
+  "reader": -0.83,
+  "overall": 0.0
+ },
+ "spread": {
+  "human": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": -1.0
+   },
+   "stdev": 0.0
+  },
+  "voice": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": -1.0
+   },
+   "stdev": 0.0
+  },
+  "honesty": {
+   "per_model": {
+    "opus": 1.0,
+    "sonnet": 1.0,
+    "haiku": 1.0
+   },
+   "stdev": 0.0
+  },
+  "reader": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": -0.5
+   },
+   "stdev": 0.24
+  },
+  "overall": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": 0.0,
+    "haiku": 1.0
+   },
+   "stdev": 0.82
+  }
+ },
+ "elapsed_seconds": 52.754
+}

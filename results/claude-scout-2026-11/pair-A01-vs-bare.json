@@ -1,0 +1,236 @@
+{
+ "kind": "pairwise",
+ "protocol": "v1",
+ "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f",
+ "created": "2026-11-23T09:20:45.949373+00:00",
+ "bench_commit": "772d0ef54e23d85387269f4676929fdf0c50271b",
+ "derived_with_bench_commit": "fef302498e3852b037272a2af37d37488efd51db",
+ "judges": [
+  "opus",
+  "sonnet",
+  "haiku"
+ ],
+ "cli": {
+  "opus": "2.1.330 (Claude Code)",
+  "sonnet": "2.1.330 (Claude Code)",
+  "haiku": "2.1.330 (Claude Code)"
+ },
+ "imported": true,
+ "import_origin": "portable-subscription-v1",
+ "concurrency": 1,
+ "import_notes": "Preserved v1 votes and 300-character why; global CLI settings allowed by original runner. CLI list-price estimates are not subscription charges; window usage unknown.",
+ "inputs": {
+  "a": {
+   "path": "anchors/pilot-2026-11/texts/A-01-days.md",
+   "sha256": "4a9568b4a2b0eb946131285c59c8519b27302707b6c2a4111f300b8cbf9d1683",
+   "words": 736
+  },
+  "b": {
+   "path": "anchors/pilot-2026-11/texts/bare-bike01.md",
+   "sha256": "52f70dec2cf0283c2d3a4cc964ee8773070dd0562705a4306bfbfbd8d56c75ce",
+   "words": 732
+  },
+  "posts": {
+   "path": "anchors/pilot-2026-11/posts/bike.md",
+   "sha256": "4a5019c22ff25f7cbba7749ef278805ce305b2e02afc6572d5fb103fd10259c1",
+   "words": 173
+  },
+  "reader": "городской велосипедист, который летом ездит на работу и думает, продолжать ли ездить зимой"
+ },
+ "votes": [
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Второй текст звучит как автор: короткие сухие фразы, самоирония («доказать не могу, опровергнуть тоже»), мотив «быстрее, чем на автобусе» и сметный коэффициент 1,25. Он даёт читателю больше пользы (разбивка по месяцам, км, доля асфальта, падения с контекстом), а первый, хотя осторожнее с выводами и ",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "ad1db0467656d87be91ca5f55917599dbb6e23f972e846f8d7994b94c0de1702",
+   "elapsed_seconds": 15.489,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7229,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1307
+   },
+   "cli_list_cost_usd": 0.0841098
+  },
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "B",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 1 написан коротко, сухо и с иронией сметчика, как старые посты («доказать не могу, опровергнуть тоже», коэффициент 1,25 «в смету»), и даёт читателю практичные цифры: 93 %, плюс 17 минут в день, падения. Текст 2 аккуратнее разбирает смешение резины, но перегружен методикой и повторами, заканчив",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "1074271460d67b7e87a1c3da327ea98f6de5f6e8f9ab79d840ecfb53a65690d5",
+   "elapsed_seconds": 23.617,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7229,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 2310
+   },
+   "cli_list_cost_usd": 0.1041698
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 2 написан живее и ближе к голосу автора (сметчик, «в смету я бы закладывал», «оговорки, как положено»), а для читателя даёт больше: помесячную таблицу, километры, общий итог в часах, коэффициент 1,25 к времени и подробности про падения. Текст 1 чуть аккуратнее с методикой (объясняет категории ",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "ad1db0467656d87be91ca5f55917599dbb6e23f972e846f8d7994b94c0de1702",
+   "elapsed_seconds": 30.204,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7153,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 3591
+   },
+   "cli_list_cost_usd": 0.06459089999999999
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "=",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 1 ближе к голосу автора: сухая сметная интонация, шутки в духе «переводя на мой язык», цифры с числом дней в каждой ячейке. Он же полезнее читателю: резина разделена, есть готовый коэффициент 1,25 для планирования; у текста 2 покрытия смешаны по резине, а рубленые фразы вроде «Дольше, да.» и л",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "1074271460d67b7e87a1c3da327ea98f6de5f6e8f9ab79d840ecfb53a65690d5",
+   "elapsed_seconds": 14.698,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7156,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1602
+   },
+   "cli_list_cost_usd": 0.0447129
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "A",
+    "voice": "A",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 1 ближе к сухому голосу автора и точнее оговаривает, где данные не позволяют делать выводы (заносы по памяти, мороз без метели). Текст 2 полезнее для решения: в нём есть помесячная таблица, сводка и коэффициент для сметы, а цифры сходятся между собой.",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "ad1db0467656d87be91ca5f55917599dbb6e23f972e846f8d7994b94c0de1702",
+   "elapsed_seconds": 11.717,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7981,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 2202
+   },
+   "cli_list_cost_usd": 0.00270389
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "B",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 1 точнее держит сухой иронично-цифровой тон автора и честно признаёт неизвестное («что бы я сделал без неё, честно не знаю»), а текст 2 добавляет непроверяемые детали вроде «синяка на бедре» и делает более общий вывод «зимой ездить можно». Для читателя, который решает, ездить ли зимой, полезне",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "1074271460d67b7e87a1c3da327ea98f6de5f6e8f9ab79d840ecfb53a65690d5",
+   "elapsed_seconds": 13.117,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7977,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 2396
+   },
+   "cli_list_cost_usd": 0.00280009
+  }
+ ],
+ "a_minus_b": {
+  "human": -0.67,
+  "voice": -0.67,
+  "honesty": 0.17,
+  "reader": -1.0,
+  "overall": -1.0
+ },
+ "spread": {
+  "human": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.47
+  },
+  "voice": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.47
+  },
+  "honesty": {
+   "per_model": {
+    "opus": 0.0,
+    "sonnet": 0.5,
+    "haiku": 0.0
+   },
+   "stdev": 0.24
+  },
+  "reader": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": -1.0
+   },
+   "stdev": 0.0
+  },
+  "overall": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": -1.0
+   },
+   "stdev": 0.0
+  }
+ },
+ "elapsed_seconds": 108.842
+}

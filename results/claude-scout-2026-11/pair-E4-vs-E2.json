@@ -1,0 +1,236 @@
+{
+ "kind": "pairwise",
+ "protocol": "v1",
+ "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f",
+ "created": "2026-11-23T09:17:41.991612+00:00",
+ "bench_commit": "772d0ef54e23d85387269f4676929fdf0c50271b",
+ "derived_with_bench_commit": "fef302498e3852b037272a2af37d37488efd51db",
+ "judges": [
+  "opus",
+  "sonnet",
+  "haiku"
+ ],
+ "cli": {
+  "opus": "2.1.330 (Claude Code)",
+  "sonnet": "2.1.330 (Claude Code)",
+  "haiku": "2.1.330 (Claude Code)"
+ },
+ "imported": true,
+ "import_origin": "portable-subscription-v1",
+ "concurrency": 1,
+ "import_notes": "Preserved v1 votes and 300-character why; global CLI settings allowed by original runner. CLI list-price estimates are not subscription charges; window usage unknown.",
+ "inputs": {
+  "a": {
+   "path": "anchors/pilot-2026-11/texts/E4-02.md",
+   "sha256": "5f2ce8dabf21f571fe87499f041f9aa18b4e9e215058580f52b0feaf9807b525",
+   "words": 811
+  },
+  "b": {
+   "path": "anchors/pilot-2026-11/texts/E2-02-final.md",
+   "sha256": "a0b03403ec2a7a22b4bec60c2e0b8a980bb9dfeee711773f3b07ed83453a5f87",
+   "words": 811
+  },
+  "posts": {
+   "path": "anchors/pilot-2026-11/posts/bike.md",
+   "sha256": "4a5019c22ff25f7cbba7749ef278805ce305b2e02afc6572d5fb103fd10259c1",
+   "words": 173
+  },
+  "reader": "городской велосипедист, который летом ездит на работу и думает, продолжать ли зимой и покупать ли шипы"
+ },
+ "votes": [
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "B",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Второй текст живее: в нём есть короткие сухие ходы в духе автора («Поменялась резина. И погода.») и меньше канцелярских связок вроде «Значит… Оказалось, меньше, чем я думал». Он честнее и полезнее: называет 2 падения из 3 морозных ледовых поездок без шипов, прямо отказывается от выводов по четырём п",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "856e1dd644864ca2f4bd6433c043eb287c00ee3921f6f4b133ceed7f6672c9d7",
+   "elapsed_seconds": 12.254,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7427,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1081
+   },
+   "cli_list_cost_usd": 0.08117379999999999
+  },
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "A",
+    "voice": "A",
+    "honesty": "B",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Второй текст живее и ближе к сухому голосу автора: в нём есть деталь про объезд по Комсомольскому, честное «в разы не напишу, хотя напрашивается», объяснение, почему заносам верить меньше, и более удобные таблицы; первый текст повторяет одни и те же оговорки и цифры, а финал почти дублирует разделы.",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "5964f565784ad1d60562c2103a760501abd131cc13cec85aff46ecfc352fb72e",
+   "elapsed_seconds": 12.249,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7427,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1038
+   },
+   "cli_list_cost_usd": 0.08031379999999999
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "=",
+    "overall": "A"
+   },
+   "why": "Текст 2 ближе к голосу автора и читается живее: короткие сухие фразы вроде «Поменялась резина. И погода.» и честное «не знаю» в конце. Но он добавляет детали, которых нет в данных (отсылка к «отдельной статье серии», дата 6 февраля, «два раза из трёх таких поездок»), поэтому по честности и для публи",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "856e1dd644864ca2f4bd6433c043eb287c00ee3921f6f4b133ceed7f6672c9d7",
+   "elapsed_seconds": 13.44,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7353,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1493
+   },
+   "cli_list_cost_usd": 0.0444109
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "=",
+    "reader": "=",
+    "overall": "B"
+   },
+   "why": "Текст 1 короче и суше, ближе к лаконичной иронии автора, и в нём нет выдуманного «я думал — оказалось», которое в тексте 2 выглядит как нейросетевой приём. Честность с данными и польза для читателя у них почти равны: оба оговаривают смешение погоды и резины и дают условный совет про лёд, но у текста",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "5964f565784ad1d60562c2103a760501abd131cc13cec85aff46ecfc352fb72e",
+   "elapsed_seconds": 13.511,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7355,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1352
+   },
+   "cli_list_cost_usd": 0.0430089
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "A",
+    "voice": "A",
+    "honesty": "A",
+    "reader": "=",
+    "overall": "A"
+   },
+   "why": "Текст 1 звучит ближе к автору: в нём больше сухих и личных оборотов вроде «Теперь «в разы» не напишу, хотя напрашивается», а в тексте 2 больше объяснительных фраз. Текст 1 также точнее описывает падения на морозе, где текст 2 пишет неясное «два раза из трёх таких поездок».",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "856e1dd644864ca2f4bd6433c043eb287c00ee3921f6f4b133ceed7f6672c9d7",
+   "elapsed_seconds": 11.201,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 8179,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 2101
+   },
+   "cli_list_cost_usd": 0.00269299
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "B",
+    "reader": "A",
+    "overall": "B"
+   },
+   "why": "Текст 1 ближе к сухому, рубленому голосу автора и звучит меньше как пересказ по шаблону. Текст 2 лучше калиброван и полезнее читателю, но добавляет детали, которых нет в данных (Комсомольский, непрочищенная набережная), поэтому по честности он уступает.",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "5964f565784ad1d60562c2103a760501abd131cc13cec85aff46ecfc352fb72e",
+   "elapsed_seconds": 11.796,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 8175,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1965
+   },
+   "cli_list_cost_usd": 0.00262419
+  }
+ ],
+ "a_minus_b": {
+  "human": -0.33,
+  "voice": -0.33,
+  "honesty": -0.17,
+  "reader": 0.17,
+  "overall": 0.0
+ },
+ "spread": {
+  "human": {
+   "per_model": {
+    "opus": 0.0,
+    "sonnet": -1.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.47
+  },
+  "voice": {
+   "per_model": {
+    "opus": 0.0,
+    "sonnet": -1.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.47
+  },
+  "honesty": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": 0.5,
+    "haiku": 0.0
+   },
+   "stdev": 0.62
+  },
+  "reader": {
+   "per_model": {
+    "opus": 0.0,
+    "sonnet": 0.0,
+    "haiku": 0.5
+   },
+   "stdev": 0.24
+  },
+  "overall": {
+   "per_model": {
+    "opus": 0.0,
+    "sonnet": 0.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.0
+  }
+ },
+ "elapsed_seconds": 74.451
+}

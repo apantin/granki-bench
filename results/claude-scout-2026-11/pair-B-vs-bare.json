@@ -1,0 +1,236 @@
+{
+ "kind": "pairwise",
+ "protocol": "v1",
+ "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f",
+ "created": "2026-11-23T09:18:53.594645+00:00",
+ "bench_commit": "772d0ef54e23d85387269f4676929fdf0c50271b",
+ "derived_with_bench_commit": "fef302498e3852b037272a2af37d37488efd51db",
+ "judges": [
+  "opus",
+  "sonnet",
+  "haiku"
+ ],
+ "cli": {
+  "opus": "2.1.330 (Claude Code)",
+  "sonnet": "2.1.330 (Claude Code)",
+  "haiku": "2.1.330 (Claude Code)"
+ },
+ "imported": true,
+ "import_origin": "portable-subscription-v1",
+ "concurrency": 1,
+ "import_notes": "Preserved v1 votes and 300-character why; global CLI settings allowed by original runner. CLI list-price estimates are not subscription charges; window usage unknown.",
+ "inputs": {
+  "a": {
+   "path": "anchors/pilot-2026-11/texts/B-01-ci.md",
+   "sha256": "a5374fa08f11b8c74f6c73637045163ec9f43295c12327c3565d4a487adf61fc",
+   "words": 799
+  },
+  "b": {
+   "path": "anchors/pilot-2026-11/texts/bare-ci.md",
+   "sha256": "497f2b0b46f6e70c994e117aa0eb73ca4b3c272e3b83c863382f34f957cd45a2",
+   "words": 729
+  },
+  "posts": {
+   "path": "anchors/pilot-2026-11/posts/ci.md",
+   "sha256": "668121cd12eb62dc614c128cbcfecfaf71e473ea70b2446f1e6ee77eb4fae8f8",
+   "words": 199
+  },
+  "reader": "инженеры соседних команд и техлиды, которые решают, внедрять ли кэш зависимостей в CI и чего от него ждать"
+ },
+ "votes": [
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Второй текст живее и ближе к Марине: короткие фразы, сухая ирония, «приходите, посмотрим вместе». Но в нём есть утверждения, которых данные не подтверждают: «полтора раза» от раннеров, «почти половина сборки — зависимости», «промах значит смену lock-файла», «сеть не узкое место», «повторить за пару ",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "f85b555b1dfa89367ee2dd3767a5810a3264c0ca9b54c6097dda571e7bf13a88",
+   "elapsed_seconds": 9.4,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7600,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 733
+   },
+   "cli_list_cost_usd": 0.07559779999999999
+  },
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Первый текст написан живо и узнаваемо голосом Марины, с короткими фразами, иронией и практическим чек-листом, а второй сухой, канцелярский и повторяет одни и те же цифры. Зато второй аккуратнее с данными: он не приписывает новым раннерам «полтора раза» и не выводит из 43% долю скачивания зависимосте",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "e36f69fc0508303325814bd5fbd5b03c78ba3efdd0d24e44a5fd4d9be68fa7fc",
+   "elapsed_seconds": 9.356,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7600,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 789
+   },
+   "cli_list_cost_usd": 0.0767178
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 2 написан живо, близко к интонации Марины (структура, ирония, «приходите, посмотрим вместе») и даёт читателю понятный чек-лист; текст 1 тяжело читается из-за бесконечных оговорок и канцелярита. Зато текст 1 честнее: текст 2 выдаёт за факт непроверенное (что промах означает смену lock-файла, чт",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "f85b555b1dfa89367ee2dd3767a5810a3264c0ca9b54c6097dda571e7bf13a88",
+   "elapsed_seconds": 10.311,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7528,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1029
+   },
+   "cli_list_cost_usd": 0.040470900000000004
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 1 написан живым голосом Марины (ирония, «приходите, посмотрим вместе», чек-лист из трёх пунктов), читается как статья и даёт читателю понятную цифру 1,8× и практические проверки; при этом он честно разделяет эффект кэша и новых раннеров. Текст 2 строже в оговорках и честнее по ограничениям (не",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "e36f69fc0508303325814bd5fbd5b03c78ba3efdd0d24e44a5fd4d9be68fa7fc",
+   "elapsed_seconds": 4.357,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7528,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 252
+   },
+   "cli_list_cost_usd": 0.0327009
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 2 ближе к сухому, ироничному голосу Марины и читается как живой текст, а не как набор оговорок. Текст 1 честнее: он прямо оговаривает, что эффект кэша смешан с другими изменениями и что причины промахов не изучались, тогда как во втором тексте «чистый эффект кэша» и объяснение медленных промах",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "f85b555b1dfa89367ee2dd3767a5810a3264c0ca9b54c6097dda571e7bf13a88",
+   "elapsed_seconds": 11.156,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 8352,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1985
+   },
+   "cli_list_cost_usd": 0.00266959
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "B",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "A",
+    "overall": "B"
+   },
+   "why": "Текст 1 ближе к сухому, короткому голосу Марины с личными интонациями и практичным чек-листом, и он сразу честно поправляет «в три раза». Текст 2 точнее в данных и оговорках (медиана с числом сборок, разбивка по раннерам, отдельная медиана по успешным сборкам), поэтому он полезнее читателю для решен",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "e36f69fc0508303325814bd5fbd5b03c78ba3efdd0d24e44a5fd4d9be68fa7fc",
+   "elapsed_seconds": 10.34,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 8350,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1678
+   },
+   "cli_list_cost_usd": 0.00251569
+  }
+ ],
+ "a_minus_b": {
+  "human": -1.0,
+  "voice": -1.0,
+  "honesty": 1.0,
+  "reader": -0.33,
+  "overall": -0.67
+ },
+ "spread": {
+  "human": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": -1.0
+   },
+   "stdev": 0.0
+  },
+  "voice": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": -1.0
+   },
+   "stdev": 0.0
+  },
+  "honesty": {
+   "per_model": {
+    "opus": 1.0,
+    "sonnet": 1.0,
+    "haiku": 1.0
+   },
+   "stdev": 0.0
+  },
+  "reader": {
+   "per_model": {
+    "opus": 0.0,
+    "sonnet": -1.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.47
+  },
+  "overall": {
+   "per_model": {
+    "opus": 0.0,
+    "sonnet": -1.0,
+    "haiku": -1.0
+   },
+   "stdev": 0.47
+  }
+ },
+ "elapsed_seconds": 54.92
+}

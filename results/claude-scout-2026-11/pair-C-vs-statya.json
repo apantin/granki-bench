@@ -1,0 +1,236 @@
+{
+ "kind": "pairwise",
+ "protocol": "v1",
+ "prompt_sha256": "553e75a8a5f812a3091052c8f01bbc3c9c9fb756f97a4cbedb1571038be49d9f",
+ "created": "2026-11-23T09:19:50.306947+00:00",
+ "bench_commit": "772d0ef54e23d85387269f4676929fdf0c50271b",
+ "derived_with_bench_commit": "fef302498e3852b037272a2af37d37488efd51db",
+ "judges": [
+  "opus",
+  "sonnet",
+  "haiku"
+ ],
+ "cli": {
+  "opus": "2.1.330 (Claude Code)",
+  "sonnet": "2.1.330 (Claude Code)",
+  "haiku": "2.1.330 (Claude Code)"
+ },
+ "imported": true,
+ "import_origin": "portable-subscription-v1",
+ "concurrency": 1,
+ "import_notes": "Preserved v1 votes and 300-character why; global CLI settings allowed by original runner. CLI list-price estimates are not subscription charges; window usage unknown.",
+ "inputs": {
+  "a": {
+   "path": "anchors/pilot-2026-11/texts/C-01-solar.md",
+   "sha256": "c3d491fc550f8270c223d04573c95c0f63647f04cccaddcdb654d9d3ead128f9",
+   "words": 1641
+  },
+  "b": {
+   "path": "anchors/pilot-2026-11/texts/statya-solar.md",
+   "sha256": "ecdda28850df422e947b09d4ade096d9458d564c98ef3d2567e8e5a790ce2866",
+   "words": 949
+  },
+  "posts": {
+   "path": "anchors/pilot-2026-11/posts/solar.md",
+   "sha256": "6a6970950bdb3a4e30bfb1a30e1e63b2d164293cefbbc6fff7d4f00a342d1046",
+   "words": 219
+  },
+  "reader": "дачник, не инженер, который думает поставить солнечную станцию себе: ставить ли и какого размера"
+ },
+ "votes": [
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "A",
+    "voice": "A",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "A"
+   },
+   "why": "Текст 2 полезнее для решения: в нём помесячная таблица, конкретные советы про пусковой ток насоса и автоперезапуск инвертора, прикидка размера. Но он придумывает автору биографию («тридцать лет на подстанциях»), выдаёт 15% прибавки от мойки при сомнительной погоде, путается с «пропавшими» 410 кВт·ч ",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "463d70b9e11b3df6f5d7eed06f9336982d68ac00c47ae2f4219c08696ad78d6d",
+   "elapsed_seconds": 11.184,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 9955,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 852
+   },
+   "cli_list_cost_usd": 0.09681780000000001
+  },
+  {
+   "judge": "opus",
+   "model_id": "claude-opus-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "A",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "A"
+   },
+   "why": "Первый текст короче, деловитее и ближе к голосу Нины Аркадьевны, а практический список (пусковой ток насоса, автоперезапуск инвертора) полезен читателю. Но в нём незаполненные заглушки, выдуманная биография («тридцать лет на подстанциях») и завышенные выводы: 15% от мойки и «410 кВт·ч просто не идёт",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "b424be2bb80c4f6c81d40ec8d740703412b124cffe0085d8d16a403caad4ed37",
+   "elapsed_seconds": 11.759,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 9959,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 939
+   },
+   "cli_list_cost_usd": 0.0985898
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "A",
+    "voice": "A",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "A"
+   },
+   "why": "Текст 1 держится в рамках данных автора, честно оговаривает, чего она не знает (отключения по памяти, погода за будни, причина сбоя), и по голосу близок к её постам. Текст 2 полезнее читателю: в нём есть расчёт окупаемости и список вопросов к монтажникам, но он с незаполненными плейсхолдерами, с выд",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "463d70b9e11b3df6f5d7eed06f9336982d68ac00c47ae2f4219c08696ad78d6d",
+   "elapsed_seconds": 8.774,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 9887,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 775
+   },
+   "cli_list_cost_usd": 0.0473669
+  },
+  {
+   "judge": "sonnet",
+   "model_id": "claude-sonnet-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "A",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "A"
+   },
+   "why": "Текст 1 ближе к сухому практичному голосу автора и даёт читателю чек-лист с прикидкой размера. Но он оставляет незаполненные заготовки в скобках, выдумывает «тридцать лет на подстанциях», утверждает эффект мойки в 15% (по данным в ясные дни его нет) и объясняет, куда делись 410 кВт·ч, хотя этого ник",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "b424be2bb80c4f6c81d40ec8d740703412b124cffe0085d8d16a403caad4ed37",
+   "elapsed_seconds": 11.823,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 9885,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 1196
+   },
+   "cli_list_cost_usd": 0.0515689
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ab",
+   "votes": {
+    "human": "B",
+    "voice": "A",
+    "honesty": "A",
+    "reader": "B",
+    "overall": "B"
+   },
+   "why": "Текст 1 точнее передаёт голос Нины Аркадьевны: личные наблюдения, «по памяти», самоирония, нарочитая прямота — и честно фиксирует пробелы в данных. Текст 2 полезнее читателю: есть практический чек-лист, окупаемость и сравнение с потреблением, а не только рассказ о даче, однако в нём остаются шаблонн",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "463d70b9e11b3df6f5d7eed06f9336982d68ac00c47ae2f4219c08696ad78d6d",
+   "elapsed_seconds": 3.659,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 10711,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 221
+   },
+   "cli_list_cost_usd": 0.00225939
+  },
+  {
+   "judge": "haiku",
+   "model_id": "claude-haiku-5-5",
+   "order": "ba",
+   "votes": {
+    "human": "A",
+    "voice": "B",
+    "honesty": "A",
+    "reader": "A",
+    "overall": "A"
+   },
+   "why": "Текст 1 выглядит как шаблон с пустыми плейсхолдерами [__] и [Здесь нужен ваш рассказ...], а его таблица и выводы звучат гладко и отчётно, что характерно для сгенерированного текста. Текст 2 ближе к живому голосу автора (разговорные обороты, признания «по памяти», «не помню»), честнее обозначает проб",
+   "error": false,
+   "cost_usd": null,
+   "actual_prompt_sha256": "b424be2bb80c4f6c81d40ec8d740703412b124cffe0085d8d16a403caad4ed37",
+   "elapsed_seconds": 4.132,
+   "reported_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 10707,
+    "cache_read_input_tokens": 649,
+    "output_tokens": 217
+   },
+   "cli_list_cost_usd": 0.0022565899999999997
+  }
+ ],
+ "a_minus_b": {
+  "human": 0.67,
+  "voice": 0.0,
+  "honesty": 1.0,
+  "reader": -0.67,
+  "overall": 0.67
+ },
+ "spread": {
+  "human": {
+   "per_model": {
+    "opus": 1.0,
+    "sonnet": 1.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.47
+  },
+  "voice": {
+   "per_model": {
+    "opus": 0.0,
+    "sonnet": 0.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.0
+  },
+  "honesty": {
+   "per_model": {
+    "opus": 1.0,
+    "sonnet": 1.0,
+    "haiku": 1.0
+   },
+   "stdev": 0.0
+  },
+  "reader": {
+   "per_model": {
+    "opus": -1.0,
+    "sonnet": -1.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.47
+  },
+  "overall": {
+   "per_model": {
+    "opus": 1.0,
+    "sonnet": 1.0,
+    "haiku": 0.0
+   },
+   "stdev": 0.47
+  }
+ },
+ "elapsed_seconds": 51.331
+}
