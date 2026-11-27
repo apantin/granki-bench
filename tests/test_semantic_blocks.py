@@ -68,6 +68,12 @@ class ProsePreTest(unittest.TestCase):
             with self.subTest(value=value):
                 clean,meta=convert(value);self.assertEqual(clean.code_blocks,1);self.assertEqual(meta['preserved_prose_pre'],0)
 
+    def test_code_role_on_an_outer_wrapper_also_blocks_promotion(self):
+        for wrapper in ['class="language-python"','data-language="python"','data-lang="console"','lang="python"']:
+            with self.subTest(wrapper=wrapper):
+                clean,meta=convert('<div '+wrapper+'><pre>Важное сообщение.</pre></div>')
+                self.assertEqual(clean.code_blocks,1);self.assertEqual(meta['preserved_prose_pre'],0)
+
     def test_quoted_foreign_pre_is_not_restored_as_own_prose(self):
         clean,meta=convert('<blockquote cite="https://example.org/source"><pre>Чужое авторское предложение.</pre></blockquote><p>Свой вывод.</p>')
         self.assertNotIn('Чужое авторское',clean.raw);self.assertEqual(meta['preserved_prose_pre'],0)

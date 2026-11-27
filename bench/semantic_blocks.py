@@ -109,7 +109,8 @@ def repair(main):
         for parent in node.iterancestors():
             if parent is main:return True
             if parent.tag in SKIP|{'pre','code'}:return False
-            if any('code' in c.lower() or 'highlight' in c.lower() or 'syntax' in c.lower() for c in parent.get('class','').split()):return False
+            if any('code' in c.lower() or 'highlight' in c.lower() or 'syntax' in c.lower() or c.lower().startswith(('lang-','language-')) for c in parent.get('class','').split()):return False
+            if any(k in parent.attrib for k in ('lang','data-language','data-lang')):return False
         return False
     for table in list(main.xpath('.//table')):
         if not visible(table) or table_grid(table) is not None:continue
