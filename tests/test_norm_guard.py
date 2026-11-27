@@ -8,6 +8,26 @@ spec.loader.exec_module(guard)
 
 
 class NormGuardTest(unittest.TestCase):
+    def test_language_policy_requires_named_policy_and_pinned_model(self):
+        import json
+        def check(value):
+            return guard.norm_problems('norms/article-blog/config.json', json.dumps(value).encode())
+        valid = dict(language_policy='py3langid-0.4.0-russian-v1', dependencies={'py3langid': '0.4.0'})
+        self.assertEqual(check(valid), [])
+        for value in [valid | {'language_policy': None}, valid | {'language_policy': 'future'},
+                      valid | {'dependencies': {}}, valid | {'dependencies': {'py3langid': 'future'}}]:
+            self.assertTrue(check(value))
+
+    def test_completeness_policy_requires_supported_cleaner(self):
+        import json
+        def check(value):
+            return guard.norm_problems('norms/article-blog/config.json', json.dumps(value).encode())
+        valid = dict(completeness_policy='explicit-source-cut-v1', clean_version='clean-v20-technical-markup-candidate')
+        self.assertEqual(check(valid), [])
+        for value in [valid | {'completeness_policy': None}, valid | {'completeness_policy': 'future'},
+                      valid | {'clean_version': 'clean-v3'}, {'completeness_policy': 'explicit-source-cut-v1'}]:
+            self.assertTrue(check(value))
+
     def test_legacy_profile_query_is_not_a_local_home(self):
         self.assertIsNone(guard.PRIVATE.search('/Users/Profile.aspx?uid=1'))
         for suffix in ['Example/project','Example','Profile.aspx/project','Profile.aspx']:

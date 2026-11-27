@@ -48,6 +48,10 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
         extractor=technical_markup.extract
     provenance_policy=config.get('provenance_policy')
     if 'provenance_policy' in config and provenance_policy not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7','primary-source-series-v8'}:raise ValueError('Неизвестная политика происхождения')
+    completeness_policy=config.get('completeness_policy')
+    if 'completeness_policy' in config:
+        if completeness_policy!='explicit-source-cut-v1' or config['clean_version']!='clean-v20-technical-markup-candidate':
+            raise ValueError('Неизвестная политика полноты или несовместимая очистка')
     language_review=None
     if 'language_policy' in config:
         from bench.candidates.language_review import load_review
@@ -124,6 +128,14 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                         if provenance['translation_status']!='explicit-translation':counts['primary_header_translation_without_author']+=1
                         counts['primary_header_translation']+=1;continue
                     clean,metadata=extractor(payload,record['url'])
+                    if completeness_policy is not None:
+                        markers=metadata.get('source_incomplete_markers')
+                        if not isinstance(markers,list) or any(not isinstance(m,str) or not m.strip() for m in markers):
+                            raise ValueError('Нет корректной диагностики полноты источника')
+                        if markers:
+                            counts['incomplete_source']+=1
+                            for marker in set(markers):counts['incomplete_source:'+marker]+=1
+                            continue
                     if provenance_policy in {'primary-source-rsdn-habr-kontur-liveinternet-v7','primary-source-series-v8'}:
                         marker=liveinternet_series_source_marker if provenance_policy=='primary-source-series-v8' else liveinternet_source_marker
                         origin=marker(payload,record['url'],extracted_raw=clean.raw)
@@ -189,6 +201,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     (output/'failures.json').write_text(json.dumps(failures,ensure_ascii=False,indent=2)+'\n')
     complete=len(selected)==config['target'] and not counts['budget_stop'] and not any(k.startswith(('index_error:','error:')) for k in counts)
     version_fields={} if config['clean_version']==VERSION else dict(clean_version=config['clean_version'])
+    if completeness_policy is not None:version_fields['completeness_policy']=completeness_policy
     if language_review is not None:version_fields['language_review']=language_review.fingerprint
     (output/'summary.json').write_text(json.dumps(dict(counts,unique=len(unique),selected=len(selected),duplicates=len(duplicates),
                                                     elapsed_seconds=round(time.monotonic()-start,2),transferred_bytes=http.bytes,requests=http.requests,
