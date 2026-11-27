@@ -86,11 +86,18 @@ def norm_problems(path: str, data: bytes) -> list[str]:
             return ['неверный JSON конфигурации']
         allowed = {'version', 'seed', 'snapshots', 'target', 'min_words', 'max_words', 'min_cyrillic',
                    'domain_cap', 'author_cap', 'dedup_threshold', 'clean_version', 'max_records',
-                   'index_method', 'candidate_limit', 'candidate_limits', 'paused_domains', 'max_blocks', 'subgenres', 'dependencies', 'provenance_policy'}
+                   'index_method', 'candidate_limit', 'candidate_limits', 'paused_domains', 'max_blocks', 'subgenres', 'dependencies', 'provenance_policy', 'language_policy', 'completeness_policy'}
         if not isinstance(config, dict) or set(config) - allowed:
             return ['недопустимые поля конфигурации нормы']
         if 'provenance_policy' in config and config['provenance_policy'] not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7','primary-source-series-v8'}:
             return ['неизвестная политика происхождения нормы']
+        if 'language_policy' in config:
+            if (config['language_policy']!='py3langid-0.4.0-russian-v1' or
+                    not isinstance(config.get('dependencies'),dict) or config['dependencies'].get('py3langid')!='0.4.0'):
+                return ['неизвестная языковая политика или незакреплённый классификатор']
+        if 'completeness_policy' in config:
+            if config['completeness_policy']!='explicit-source-cut-v1' or config.get('clean_version')!='clean-v20-technical-markup-candidate':
+                return ['неизвестная политика полноты или несовместимая очистка']
         paused=config.get('paused_domains',[])
         if not isinstance(paused,list) or any(not isinstance(k,str) or
                 not re.fullmatch(r'[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}',k) or
