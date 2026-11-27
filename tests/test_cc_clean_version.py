@@ -17,7 +17,7 @@ from test_technical_markup import listing
 
 
 class CleanVersionBuildTest(unittest.TestCase):
-    def run_build(self, version, *, host='xakep.ru', source=None, paused=False):
+    def run_build(self, version, *, host='xakep.ru', source=None, paused=False, config_extra=None):
         payload = source or xakep('<p>Проверяем вероятность 0,2<sup>3</sup> и сохраняем '
                                  'собственное объяснение результата.</p>' + listing() +
                                  '<p>Здесь заканчивается полный синтетический пример автора.</p>')
@@ -27,6 +27,7 @@ class CleanVersionBuildTest(unittest.TestCase):
                       seed='test', max_blocks=1, min_words=1, max_words=100, min_cyrillic=.3,
                       dedup_threshold=.85, target=1, subgenres=['technical'], domain_cap=1,
                       author_cap=5, provenance_policy=V11, paused_domains=[host] if paused else [])
+        config.update(config_extra or {})
         domain = dict(domain=host, snapshots='snapshot', url_pattern='.*', subgenre='technical')
         record = dict(url='https://' + host + '/article/example', filename='example.warc.gz',
                       offset='0', length='1')
