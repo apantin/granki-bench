@@ -75,7 +75,8 @@ python3 -m bench verify anchors/pilot-2026-11
 
 Включить проверку перед коммитом: `git config core.hooksPath .githooks`. Она не пропускает файлы вне разрешённых папок, файлы данных вне `anchors/`, посторонние файлы в `results/`, локальные пути и адреса почты, файлы больше 5 МБ, эталоны, не совпавшие с манифестом, и правку замороженных промптов.
 
-Экспериментальная очистка: [индексы и типизированный код v20](docs/technical-markup.md),
+Экспериментальная очистка: [шапка Blogspot-поста v21](docs/blogspot-post.md),
+[индексы и типизированный код v20](docs/technical-markup.md),
 [кандидат издательских ролей v19](docs/publication-cleanup.md),
 явные импорты `bench.candidates.technical_markup.extract` и
 `bench.candidates.publication_cleanup.extract`. Старые версии и
