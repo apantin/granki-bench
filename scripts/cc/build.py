@@ -39,8 +39,13 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     work=work.resolve()
     if work.resolve().is_relative_to(Path(__file__).resolve().parents[2]):
         raise ValueError('Рабочие тексты должны находиться за пределами открытого репозитория')
-    if config['clean_version']!=VERSION:
-        raise ValueError('Версия очистки не совпала с рецептом')
+    if config['clean_version']==VERSION:
+        extractor=html_article
+    else:
+        from bench.candidates import technical_markup
+        if config['clean_version']!=technical_markup.VERSION:
+            raise ValueError('Неизвестная версия очистки в рецепте')
+        extractor=technical_markup.extract
     provenance_policy=config.get('provenance_policy')
     if 'provenance_policy' in config and provenance_policy not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7','primary-source-series-v8'}:raise ValueError('Неизвестная политика происхождения')
     limits=config.get('candidate_limits',{})
@@ -114,7 +119,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                     if translation=='explicit-translation':
                         if provenance['translation_status']!='explicit-translation':counts['primary_header_translation_without_author']+=1
                         counts['primary_header_translation']+=1;continue
-                    clean,metadata=html_article(payload,record['url'])
+                    clean,metadata=extractor(payload,record['url'])
                     if provenance_policy in {'primary-source-rsdn-habr-kontur-liveinternet-v7','primary-source-series-v8'}:
                         marker=liveinternet_series_source_marker if provenance_policy=='primary-source-series-v8' else liveinternet_source_marker
                         origin=marker(payload,record['url'],extracted_raw=clean.raw)
@@ -153,6 +158,8 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                                      warc_sha256=hashlib.sha256(compressed).hexdigest(),author_method=metadata.get('author_method'))
                     if members is not None:doc.update(authors=members,author_method=provenance_policy+':'+(coauthors['status'] if coauthors and coauthors['status']=='explicit-coauthors' else provenance['author_status']))
                     if profile_keys:doc['author_quota_keys']=profile_keys
+                    if config['clean_version']!=VERSION:
+                        doc.update(clean_version=config['clean_version'],extraction_metadata=metadata)
                     docs.append(doc)
                     counts['accepted']+=1
                 except Exception as exc:
@@ -170,9 +177,10 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     (output/'selected.json').write_text(json.dumps([{k:v for k,v in d.items() if k!='text'} for d in selected],ensure_ascii=False,indent=2)+'\n')
     (output/'failures.json').write_text(json.dumps(failures,ensure_ascii=False,indent=2)+'\n')
     complete=len(selected)==config['target'] and not counts['budget_stop'] and not any(k.startswith(('index_error:','error:')) for k in counts)
+    version_fields={} if config['clean_version']==VERSION else dict(clean_version=config['clean_version'])
     (output/'summary.json').write_text(json.dumps(dict(counts,unique=len(unique),selected=len(selected),duplicates=len(duplicates),
                                                     elapsed_seconds=round(time.monotonic()-start,2),transferred_bytes=http.bytes,requests=http.requests,
-                                                    target_met=len(selected)==config['target'],complete=complete),ensure_ascii=False,indent=2)+'\n')
+                                                    target_met=len(selected)==config['target'],complete=complete,**version_fields),ensure_ascii=False,indent=2)+'\n')
     import shutil
     shutil.copyfile(output/'selected.json',run_dir/'selected.json')
     shutil.copyfile(output/'summary.json',run_dir/'summary.json')
