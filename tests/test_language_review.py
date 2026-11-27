@@ -2,7 +2,7 @@
 import unittest
 from unittest.mock import patch
 
-from bench.language_review import POLICY, RussianLanguageReview, load_review
+from bench.candidates.language_review import POLICY, RussianLanguageReview, load_review
 
 
 class LanguageReviewTest(unittest.TestCase):
@@ -44,10 +44,10 @@ class LanguageReviewTest(unittest.TestCase):
                 load_review(policy)
 
     def test_changed_version_and_weights_fail_closed(self):
-        with patch('bench.language_review.version', return_value='future'):
+        with patch('bench.candidates.language_review.version', return_value='future'):
             with self.assertRaisesRegex(ValueError, 'py3langid'):
                 RussianLanguageReview()
-        with patch('bench.language_review.MODEL_SHA256', 'bad'):
+        with patch('bench.candidates.language_review.MODEL_SHA256', 'bad'):
             with self.assertRaisesRegex(ValueError, 'модель'):
                 RussianLanguageReview()
 

@@ -50,7 +50,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     if 'provenance_policy' in config and provenance_policy not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7','primary-source-series-v8'}:raise ValueError('Неизвестная политика происхождения')
     language_review=None
     if 'language_policy' in config:
-        from bench.language_review import load_review
+        from bench.candidates.language_review import load_review
         language_review=load_review(config['language_policy'])
     limits=config.get('candidate_limits',{})
     if set(limits)-{r['domain'] for r in domains} or any(type(v) is not int or not 1<=v<=config['max_records'] for v in limits.values()):
