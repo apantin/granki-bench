@@ -20,4 +20,4 @@ data = [
 granki-bench = "bench.cli:main"
 
 [tool.setuptools]
-packages = ["bench"]
+packages = ["bench", "bench.candidates"]
