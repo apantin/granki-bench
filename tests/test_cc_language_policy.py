@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from bench.candidates.technical_markup import VERSION
-from bench.language_review import POLICY
+from bench.candidates.language_review import POLICY
 import test_cc_clean_version as legacy
 
 build = legacy.build
@@ -14,7 +14,7 @@ build = legacy.build
 
 class LanguagePolicyBuildTest(unittest.TestCase):
     def test_legacy_does_not_load_classifier_or_change_format(self):
-        with patch('bench.language_review.load_review', side_effect=AssertionError('legacy loaded model')):
+        with patch('bench.candidates.language_review.load_review', side_effect=AssertionError('legacy loaded model')):
             selected, summary, _, _, _ = legacy.CleanVersionBuildTest().run_build(VERSION)
         self.assertEqual(len(selected), 1)
         self.assertNotIn('language_review', selected[0])
@@ -26,7 +26,7 @@ class LanguagePolicyBuildTest(unittest.TestCase):
                           review_required=held, admitted=False)
             check = Mock(return_value=result)
             checker = SimpleNamespace(check=check, fingerprint={'policy': POLICY})
-            with patch('bench.language_review.load_review', return_value=checker):
+            with patch('bench.candidates.language_review.load_review', return_value=checker):
                 selected, summary, _, _, _ = legacy.CleanVersionBuildTest().run_build(
                     VERSION, config_extra={'language_policy': POLICY})
             self.assertEqual(len(selected), 0 if held else 1)
