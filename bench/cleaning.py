@@ -19,6 +19,7 @@ HTML_PUBLISHER_VERSION = 'clean-v13-publisher-candidate'
 HTML_KONTUR_VERSION = 'clean-v14-kontur-candidate'
 HTML_NETOLOGY_VERSION = 'clean-v15-netology-candidate'
 HTML_LIVEINTERNET_VERSION = 'clean-v16-liveinternet-candidate'
+HTML_SEMANTIC_BLOCKS_VERSION = 'clean-v17-semantic-blocks-candidate'
 WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё]+(?:[-’'][A-Za-zА-Яа-яЁё]+)*|\d+(?:[.,]\d+)?")
 
 
@@ -116,6 +117,12 @@ def html_article_liveinternet_candidate(content: bytes | str, url: str = '') -> 
     """Кандидат границ/служебных ролей LiveInternet; прежние версии сохраняются."""
     from .html_structure import extract_candidate
     return extract_candidate(content, url, preserve_liveinternet_roles=True)
+
+
+def html_article_semantic_blocks_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
+    """Кандидат ремонта текстовых таблиц и pre-прозы; v3–v16 неизменны."""
+    from .html_structure import extract_candidate
+    return extract_candidate(content, url, preserve_semantic_blocks=True)
 
 
 def html_article_inline_candidate(content: bytes | str, url: str = '') -> tuple[CleanText, dict]:
