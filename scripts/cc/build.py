@@ -48,6 +48,10 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
         extractor=technical_markup.extract
     provenance_policy=config.get('provenance_policy')
     if 'provenance_policy' in config and provenance_policy not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7','primary-source-series-v8'}:raise ValueError('Неизвестная политика происхождения')
+    language_review=None
+    if 'language_policy' in config:
+        from bench.language_review import load_review
+        language_review=load_review(config['language_policy'])
     limits=config.get('candidate_limits',{})
     if set(limits)-{r['domain'] for r in domains} or any(type(v) is not int or not 1<=v<=config['max_records'] for v in limits.values()):
         raise ValueError('Неверный доменный предел кандидатов')
@@ -145,6 +149,12 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                         counts['filter']+=1;continue
                     if re.search(r'(?i)(перевод\s*[:—]|перев[её]л[а]?\s*[:—]|перепечатано)',clean.raw):
                         counts['translation_or_reprint']+=1;continue
+                    language=None
+                    if language_review is not None:
+                        language=language_review.check(clean.norm)
+                        counts['language:'+language['language']]+=1
+                        if language['review_required']:
+                            counts['language_review_required']+=1;continue
                     rid=hashlib.sha256((snapshot+'\0'+record['url']).encode()).hexdigest()[:24]
                     folder=work/'cc-rebuild'/snapshot/domain['domain']
                     folder.mkdir(parents=True,exist_ok=True)
@@ -160,6 +170,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                     if profile_keys:doc['author_quota_keys']=profile_keys
                     if config['clean_version']!=VERSION:
                         doc.update(clean_version=config['clean_version'],extraction_metadata=metadata)
+                    if language is not None:doc['language_review']=language
                     docs.append(doc)
                     counts['accepted']+=1
                 except Exception as exc:
@@ -178,6 +189,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     (output/'failures.json').write_text(json.dumps(failures,ensure_ascii=False,indent=2)+'\n')
     complete=len(selected)==config['target'] and not counts['budget_stop'] and not any(k.startswith(('index_error:','error:')) for k in counts)
     version_fields={} if config['clean_version']==VERSION else dict(clean_version=config['clean_version'])
+    if language_review is not None:version_fields['language_review']=language_review.fingerprint
     (output/'summary.json').write_text(json.dumps(dict(counts,unique=len(unique),selected=len(selected),duplicates=len(duplicates),
                                                     elapsed_seconds=round(time.monotonic()-start,2),transferred_bytes=http.bytes,requests=http.requests,
                                                     target_met=len(selected)==config['target'],complete=complete,**version_fields),ensure_ascii=False,indent=2)+'\n')
