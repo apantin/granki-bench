@@ -86,7 +86,7 @@ def norm_problems(path: str, data: bytes) -> list[str]:
             return ['неверный JSON конфигурации']
         allowed = {'version', 'seed', 'snapshots', 'target', 'min_words', 'max_words', 'min_cyrillic',
                    'domain_cap', 'author_cap', 'dedup_threshold', 'clean_version', 'max_records',
-                   'index_method', 'candidate_limit', 'candidate_limits', 'index_blocks', 'paused_domains', 'max_blocks', 'subgenres', 'dependencies', 'provenance_policy', 'language_policy', 'completeness_policy', 'publication_policy'}
+                   'index_method', 'candidate_limit', 'candidate_limits', 'index_blocks', 'paused_domains', 'max_blocks', 'subgenres', 'dependencies', 'provenance_policy', 'language_policy', 'completeness_policy', 'publication_policy', 'primary_text_policy'}
         if not isinstance(config, dict) or set(config) - allowed:
             return ['недопустимые поля конфигурации нормы']
         if 'provenance_policy' in config and config['provenance_policy'] not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7','primary-source-series-v8','primary-source-livejournal-v9'}:
@@ -100,6 +100,8 @@ def norm_problems(path: str, data: bytes) -> list[str]:
                 return ['неизвестная политика полноты или несовместимая очистка']
         if 'publication_policy' in config and config['publication_policy']!='primary-advertorial-v1':
             return ['неизвестная политика роли публикации']
+        if 'primary_text_policy' in config and config['primary_text_policy']!='explicit-primary-text-v1':
+            return ['неизвестная политика типа первичного текста']
         paused=config.get('paused_domains',[])
         if not isinstance(paused,list) or any(not isinstance(k,str) or
                 not re.fullmatch(r'[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}',k) or

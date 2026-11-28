@@ -47,6 +47,14 @@ class NormGuardTest(unittest.TestCase):
         self.assertIsNotNone(guard.PRIVATE.search('/home/'+'example/project'))
         self.assertIsNotNone(guard.PRIVATE.search('/Users/Profile.aspx?uid=1/Users/'+'Example'))
 
+    def test_primary_text_policy_cannot_contain_an_arbitrary_mask_or_private_path(self):
+        import json
+        def check(value):
+            return guard.norm_problems('norms/article-blog/config.json', json.dumps({'primary_text_policy':value}).encode())
+        self.assertEqual(check('explicit-primary-text-v1'), [])
+        for value in [None, True, 'future', [], {}, {'exclude': ['one-document']}]:
+            self.assertTrue(check(value))
+
     def test_only_named_provenance_policy_is_allowed(self):
         import json
         def check(policy):return guard.norm_problems('norms/article-blog/config.json',json.dumps(dict(provenance_policy=policy)).encode())
