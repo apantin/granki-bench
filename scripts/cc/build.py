@@ -42,15 +42,18 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     if config['clean_version']==VERSION:
         extractor=html_article
     else:
-        from bench.candidates import technical_markup
-        if config['clean_version']!=technical_markup.VERSION:
+        from bench.candidates import technical_markup,editorial_roles
+        if config['clean_version']==technical_markup.VERSION:
+            extractor=technical_markup.extract
+        elif config['clean_version']==editorial_roles.VERSION:
+            extractor=editorial_roles.extract
+        else:
             raise ValueError('Неизвестная версия очистки в рецепте')
-        extractor=technical_markup.extract
     provenance_policy=config.get('provenance_policy')
     if 'provenance_policy' in config and provenance_policy not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7','primary-source-series-v8'}:raise ValueError('Неизвестная политика происхождения')
     completeness_policy=config.get('completeness_policy')
     if 'completeness_policy' in config:
-        if completeness_policy!='explicit-source-cut-v1' or config['clean_version']!='clean-v20-technical-markup-candidate':
+        if completeness_policy!='explicit-source-cut-v1' or config['clean_version'] not in ('clean-v20-technical-markup-candidate','clean-v21-editorial-roles-candidate'):
             raise ValueError('Неизвестная политика полноты или несовместимая очистка')
     language_review=None
     if 'language_policy' in config:

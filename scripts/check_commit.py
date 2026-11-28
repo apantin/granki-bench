@@ -96,7 +96,7 @@ def norm_problems(path: str, data: bytes) -> list[str]:
                     not isinstance(config.get('dependencies'),dict) or config['dependencies'].get('py3langid')!='0.4.0'):
                 return ['неизвестная языковая политика или незакреплённый классификатор']
         if 'completeness_policy' in config:
-            if config['completeness_policy']!='explicit-source-cut-v1' or config.get('clean_version')!='clean-v20-technical-markup-candidate':
+            if config['completeness_policy']!='explicit-source-cut-v1' or config.get('clean_version') not in ('clean-v20-technical-markup-candidate','clean-v21-editorial-roles-candidate'):
                 return ['неизвестная политика полноты или несовместимая очистка']
         paused=config.get('paused_domains',[])
         if not isinstance(paused,list) or any(not isinstance(k,str) or
