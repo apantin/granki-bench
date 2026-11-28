@@ -86,17 +86,17 @@ def norm_problems(path: str, data: bytes) -> list[str]:
             return ['неверный JSON конфигурации']
         allowed = {'version', 'seed', 'snapshots', 'target', 'min_words', 'max_words', 'min_cyrillic',
                    'domain_cap', 'author_cap', 'dedup_threshold', 'clean_version', 'max_records',
-                   'index_method', 'candidate_limit', 'candidate_limits', 'paused_domains', 'max_blocks', 'subgenres', 'dependencies', 'provenance_policy', 'language_policy', 'completeness_policy', 'publication_policy'}
+                   'index_method', 'candidate_limit', 'candidate_limits', 'index_blocks', 'paused_domains', 'max_blocks', 'subgenres', 'dependencies', 'provenance_policy', 'language_policy', 'completeness_policy', 'publication_policy'}
         if not isinstance(config, dict) or set(config) - allowed:
             return ['недопустимые поля конфигурации нормы']
-        if 'provenance_policy' in config and config['provenance_policy'] not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7','primary-source-series-v8'}:
+        if 'provenance_policy' in config and config['provenance_policy'] not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7','primary-source-series-v8','primary-source-livejournal-v9'}:
             return ['неизвестная политика происхождения нормы']
         if 'language_policy' in config:
             if (config['language_policy']!='py3langid-0.4.0-russian-v1' or
                     not isinstance(config.get('dependencies'),dict) or config['dependencies'].get('py3langid')!='0.4.0'):
                 return ['неизвестная языковая политика или незакреплённый классификатор']
         if 'completeness_policy' in config:
-            if config['completeness_policy']!='explicit-source-cut-v1' or config.get('clean_version') not in ('clean-v20-technical-markup-candidate','clean-v21-editorial-roles-candidate','clean-v22-keyboard-chords-candidate'):
+            if config['completeness_policy']!='explicit-source-cut-v1' or config.get('clean_version') not in ('clean-v20-technical-markup-candidate','clean-v21-editorial-roles-candidate','clean-v22-keyboard-chords-candidate','clean-v23-blogspot-uniform-candidate'):
                 return ['неизвестная политика полноты или несовместимая очистка']
         if 'publication_policy' in config and config['publication_policy']!='primary-advertorial-v1':
             return ['неизвестная политика роли публикации']
@@ -106,11 +106,12 @@ def norm_problems(path: str, data: bytes) -> list[str]:
                 any(k.endswith('.'+p) for p in ('livejournal.com','blogspot.com','liveinternet.ru','diary.ru','teletype.in'))
                 for k in paused) or len(set(paused))!=len(paused):
             return ['пауза источников должна содержать разные общие домены без профилей']
-        limits=config.get('candidate_limits',{})
-        if not isinstance(limits,dict) or any(not re.fullmatch(r'[a-z0-9.-]+\.[a-z]{2,}',k) or
-                any(k.endswith('.'+p) for p in ('livejournal.com','blogspot.com','liveinternet.ru','diary.ru','teletype.in')) or
-                type(v) is not int or v<1 for k,v in limits.items()):
-            return ['доменные пределы должны содержать только общие домены и положительные целые числа']
+        for field in ('candidate_limits','index_blocks'):
+            limits=config.get(field,{})
+            if not isinstance(limits,dict) or any(not re.fullmatch(r'[a-z0-9.-]+\.[a-z]{2,}',k) or
+                    any(k.endswith('.'+p) for p in ('livejournal.com','blogspot.com','liveinternet.ru','diary.ru','teletype.in','wordpress.com')) or
+                    type(v) is not int or v<1 for k,v in limits.items()):
+                return ['доменные пределы должны содержать только общие домены и положительные целые числа']
     if re.search(r'"(?:salt|split|split_key|author_id|source_url|validation_exclusion)"\s*:', data.decode()):
         return ['приватное поле в норме']
     return []

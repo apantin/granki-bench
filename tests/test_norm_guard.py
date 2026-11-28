@@ -26,6 +26,7 @@ class NormGuardTest(unittest.TestCase):
         self.assertEqual(check(valid), [])
         self.assertEqual(check(valid | {'clean_version': 'clean-v21-editorial-roles-candidate'}), [])
         self.assertEqual(check(valid | {'clean_version': 'clean-v22-keyboard-chords-candidate'}), [])
+        self.assertEqual(check(valid | {'clean_version': 'clean-v23-blogspot-uniform-candidate'}), [])
         for value in [valid | {'completeness_policy': None}, valid | {'completeness_policy': 'future'},
                       valid | {'clean_version': []}, valid | {'clean_version': {}},
                       valid | {'clean_version': 'clean-v3'}, {'completeness_policy': 'explicit-source-cut-v1'}]:
@@ -57,15 +58,17 @@ class NormGuardTest(unittest.TestCase):
         self.assertEqual(check('primary-source-rsdn-habr-v5'),[])
         self.assertEqual(check('primary-source-rsdn-habr-kontur-liveinternet-v7'),[])
         self.assertEqual(check('primary-source-series-v8'),[])
+        self.assertEqual(check('primary-source-livejournal-v9'),[])
         for policy in (None,True,'private-file','unknown'):
             self.assertTrue(check(policy))
 
     def test_domain_limits_do_not_publish_personal_profiles(self):
         import json
-        def check(value):return guard.norm_problems('norms/article-blog/config.json',json.dumps({'candidate_limits':value}).encode())
-        self.assertEqual(check({'example.org':600}),[])
-        for value in [{'writer.livejournal.com':600},{'example.org/@writer':600},{'example.org':True},{'example.org':0}]:
-            self.assertTrue(check(value))
+        for field in ['candidate_limits','index_blocks']:
+            def check(value):return guard.norm_problems('norms/article-blog/config.json',json.dumps({field:value}).encode())
+            self.assertEqual(check({'example.org':600}),[])
+            for value in [{'writer.livejournal.com':600},{'writer.wordpress.com':600},{'example.org/@writer':600},{'example.org':True},{'example.org':0}]:
+                self.assertTrue(check(value))
 
     def test_norm_aggregates_only(self):
         self.assertEqual(guard.norm_problems('norms/article-blog/groups.csv',
