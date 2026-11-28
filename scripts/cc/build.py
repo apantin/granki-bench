@@ -66,6 +66,11 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
         from bench.candidates.publication_policy import POLICY,review as publication_review
         if publication_policy!=POLICY:
             raise ValueError('Неизвестная политика роли публикации')
+    primary_text_policy=config.get('primary_text_policy')
+    if 'primary_text_policy' in config:
+        from bench.primary_text_type import POLICY as TEXT_POLICY,review as primary_text_review
+        if primary_text_policy!=TEXT_POLICY:
+            raise ValueError('Неизвестная политика типа первичного текста')
     language_review=None
     if 'language_policy' in config:
         from bench.candidates.language_review import load_review
@@ -124,6 +129,12 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                 try:
                     compressed=http.get(BASE+record['filename'],int(record['offset']),int(record['length']))
                     payload=response_body(compressed)
+                    text_type=None
+                    if primary_text_policy is not None:
+                        text_type=primary_text_review(payload,record['url'])
+                        counts['primary_text_type:'+text_type['status']]+=1
+                        if text_type['status'] in {'explicit-translation-credit','explicit-webinar-outline'}:
+                            continue
                     livejournal=None
                     if provenance_policy==LIVEJOURNAL_POLICY:
                         livejournal=livejournal_source_marker(payload,record['url'])
@@ -214,6 +225,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                         doc.update(clean_version=config['clean_version'],extraction_metadata=metadata)
                     if language is not None:doc['language_review']=language
                     if publication is not None:doc['publication_review']=publication
+                    if text_type is not None:doc['primary_text_review']=text_type
                     if livejournal is not None and livejournal['status']!='not-applicable':doc['livejournal_source_review']=livejournal
                     docs.append(doc)
                     counts['accepted']+=1
@@ -235,6 +247,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     version_fields={} if config['clean_version']==VERSION else dict(clean_version=config['clean_version'])
     if completeness_policy is not None:version_fields['completeness_policy']=completeness_policy
     if publication_policy is not None:version_fields['publication_policy']=publication_policy
+    if primary_text_policy is not None:version_fields['primary_text_policy']=primary_text_policy
     if language_review is not None:version_fields['language_review']=language_review.fingerprint
     (output/'summary.json').write_text(json.dumps(dict(counts,unique=len(unique),selected=len(selected),duplicates=len(duplicates),
                                                     elapsed_seconds=round(time.monotonic()-start,2),transferred_bytes=http.bytes,requests=http.requests,
