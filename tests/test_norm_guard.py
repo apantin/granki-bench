@@ -25,9 +25,18 @@ class NormGuardTest(unittest.TestCase):
         valid = dict(completeness_policy='explicit-source-cut-v1', clean_version='clean-v20-technical-markup-candidate')
         self.assertEqual(check(valid), [])
         self.assertEqual(check(valid | {'clean_version': 'clean-v21-editorial-roles-candidate'}), [])
+        self.assertEqual(check(valid | {'clean_version': 'clean-v22-keyboard-chords-candidate'}), [])
         for value in [valid | {'completeness_policy': None}, valid | {'completeness_policy': 'future'},
                       valid | {'clean_version': []}, valid | {'clean_version': {}},
                       valid | {'clean_version': 'clean-v3'}, {'completeness_policy': 'explicit-source-cut-v1'}]:
+            self.assertTrue(check(value))
+
+    def test_publication_policy_requires_explicit_supported_value(self):
+        import json
+        def check(value):
+            return guard.norm_problems('norms/article-blog/config.json', json.dumps({'publication_policy':value}).encode())
+        self.assertEqual(check('primary-advertorial-v1'), [])
+        for value in [None, True, 'future', [], {}]:
             self.assertTrue(check(value))
 
     def test_legacy_profile_query_is_not_a_local_home(self):

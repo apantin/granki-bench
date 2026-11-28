@@ -42,19 +42,26 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     if config['clean_version']==VERSION:
         extractor=html_article
     else:
-        from bench.candidates import technical_markup,editorial_roles
+        from bench.candidates import technical_markup,editorial_roles,keyboard_chords
         if config['clean_version']==technical_markup.VERSION:
             extractor=technical_markup.extract
         elif config['clean_version']==editorial_roles.VERSION:
             extractor=editorial_roles.extract
+        elif config['clean_version']==keyboard_chords.VERSION:
+            extractor=keyboard_chords.extract
         else:
             raise ValueError('Неизвестная версия очистки в рецепте')
     provenance_policy=config.get('provenance_policy')
     if 'provenance_policy' in config and provenance_policy not in {'rsdn-primary-header-v1','rsdn-primary-header-profile-v2','rsdn-primary-header-profile-translation-v3','primary-header-rsdn-habr-v4','primary-source-rsdn-habr-v5','primary-source-rsdn-habr-kontur-v6','primary-source-rsdn-habr-kontur-liveinternet-v7','primary-source-series-v8'}:raise ValueError('Неизвестная политика происхождения')
     completeness_policy=config.get('completeness_policy')
     if 'completeness_policy' in config:
-        if completeness_policy!='explicit-source-cut-v1' or config['clean_version'] not in ('clean-v20-technical-markup-candidate','clean-v21-editorial-roles-candidate'):
+        if completeness_policy!='explicit-source-cut-v1' or config['clean_version'] not in ('clean-v20-technical-markup-candidate','clean-v21-editorial-roles-candidate','clean-v22-keyboard-chords-candidate'):
             raise ValueError('Неизвестная политика полноты или несовместимая очистка')
+    publication_policy=config.get('publication_policy')
+    if 'publication_policy' in config:
+        from bench.candidates.publication_policy import POLICY,review as publication_review
+        if publication_policy!=POLICY:
+            raise ValueError('Неизвестная политика роли публикации')
     language_review=None
     if 'language_policy' in config:
         from bench.candidates.language_review import load_review
@@ -130,6 +137,11 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                     if translation=='explicit-translation':
                         if provenance['translation_status']!='explicit-translation':counts['primary_header_translation_without_author']+=1
                         counts['primary_header_translation']+=1;continue
+                    publication=None
+                    if publication_policy is not None:
+                        publication=publication_review(payload,record['url'])
+                        counts['publication_role:'+publication['status']]+=1
+                        if publication['status']=='explicit-advertorial':continue
                     clean,metadata=extractor(payload,record['url'])
                     if completeness_policy is not None:
                         markers=metadata.get('source_incomplete_markers')
@@ -186,6 +198,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
                     if config['clean_version']!=VERSION:
                         doc.update(clean_version=config['clean_version'],extraction_metadata=metadata)
                     if language is not None:doc['language_review']=language
+                    if publication is not None:doc['publication_review']=publication
                     docs.append(doc)
                     counts['accepted']+=1
                 except Exception as exc:
@@ -205,6 +218,7 @@ def build(config:dict,domains:list[dict],work:Path,*,max_seconds:int=14400,max_b
     complete=len(selected)==config['target'] and not counts['budget_stop'] and not any(k.startswith(('index_error:','error:')) for k in counts)
     version_fields={} if config['clean_version']==VERSION else dict(clean_version=config['clean_version'])
     if completeness_policy is not None:version_fields['completeness_policy']=completeness_policy
+    if publication_policy is not None:version_fields['publication_policy']=publication_policy
     if language_review is not None:version_fields['language_review']=language_review.fingerprint
     (output/'summary.json').write_text(json.dumps(dict(counts,unique=len(unique),selected=len(selected),duplicates=len(duplicates),
                                                     elapsed_seconds=round(time.monotonic()-start,2),transferred_bytes=http.bytes,requests=http.requests,

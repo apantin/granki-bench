@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from bench.candidates import technical_markup, editorial_roles
+from bench.candidates import technical_markup, editorial_roles, keyboard_chords
 from bench.cleaning import html_article, VERSION
 from test_cc_build_provenance import build, V11
 from test_publication_body import xakep
@@ -98,6 +98,15 @@ class CleanVersionBuildTest(unittest.TestCase):
             self.assertEqual(selected, [])
             self.assertEqual(summary['primary_header_translation'], 1)
             self.assertEqual(summary['clean_version'], module.VERSION)
+
+    def test_v22_real_build_recovers_original_keyboard_symbols(self):
+        source = xakep('<p>Для переключения нажмите <Alt + Tab>, для закрытия <Alt + F4>.</p>')
+        selected, summary, raw, _, _ = self.run_build(keyboard_chords.VERSION, source=source)
+        self.assertEqual(len(selected), 1)
+        self.assertIn('<Alt + Tab>', raw[0])
+        self.assertIn('<Alt + F4>', raw[0])
+        self.assertEqual(selected[0]['extraction_metadata']['recovered_keyboard_chord_markup'], 2)
+        self.assertEqual(summary['clean_version'], keyboard_chords.VERSION)
 
     def test_v20_paused_source_never_reaches_cleaner(self):
         for module in [technical_markup, editorial_roles]:

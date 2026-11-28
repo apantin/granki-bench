@@ -7,6 +7,7 @@ from unittest.mock import patch
 from bench.cleaning import VERSION as LEGACY
 from bench.candidates.technical_markup import VERSION
 from bench.candidates.editorial_roles import VERSION as EDITORIAL
+from bench.candidates.keyboard_chords import VERSION as KEYBOARD
 import test_cc_clean_version as legacy
 from test_publication_body import xakep
 
@@ -40,13 +41,14 @@ class CompletenessPolicyTest(unittest.TestCase):
             self.assertEqual(summary.get('incomplete_source', 0), 0)
 
     def test_v21_keeps_full_source_and_excludes_the_same_explicit_cut(self):
-        for suffix, expected in [('', 1), ('<div id="xakepcut" class="xakepcut">Продолжение закрыто</div>', 0)]:
-            selected, summary, _, _, _ = legacy.CleanVersionBuildTest().run_build(
-                EDITORIAL, source=xakep('<p>Полная собственная вводка.</p>'+suffix),
-                config_extra={'completeness_policy': POLICY})
-            self.assertEqual(len(selected), expected)
-            self.assertEqual(summary.get('incomplete_source', 0), 1-expected)
-            self.assertEqual(summary['clean_version'], EDITORIAL)
+        for version in (EDITORIAL, KEYBOARD):
+            for suffix, expected in [('', 1), ('<div id="xakepcut" class="xakepcut">Продолжение закрыто</div>', 0)]:
+                selected, summary, _, _, _ = legacy.CleanVersionBuildTest().run_build(
+                    version, source=xakep('<p>Полная собственная вводка.</p>'+suffix),
+                    config_extra={'completeness_policy': POLICY})
+                self.assertEqual(len(selected), expected)
+                self.assertEqual(summary.get('incomplete_source', 0), 1-expected)
+                self.assertEqual(summary['clean_version'], version)
 
     def test_marker_outside_article_is_not_a_cut(self):
         source = xakep('<p>Полная доступная авторская публикация.</p>')
