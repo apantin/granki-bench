@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from bench.candidates import technical_markup
+from bench.candidates import technical_markup, editorial_roles
 from bench.cleaning import html_article, VERSION
 from test_cc_build_provenance import build, V11
 from test_publication_body import xakep
@@ -76,20 +76,36 @@ class CleanVersionBuildTest(unittest.TestCase):
                 build.build({'clean_version': 'unknown'}, [], folder)
             self.assertEqual(list(folder.iterdir()), [])
 
+    def test_v21_real_build_removes_related_widget_and_keeps_author_paragraphs(self):
+        source = ('<html><body><h1>Основная статья</h1><section itemprop="articleBody">'
+                  '<p>Своя вводка.</p><div class="readblogmore">'
+                  '<a href="/blog/other.html">Другая статья</a></div><p>Свой вывод.</p>'
+                  '</section></body></html>')
+        selected, summary, raw, _, _ = self.run_build(editorial_roles.VERSION, host='texterra.ru', source=source)
+        self.assertEqual(len(selected), 1)
+        self.assertNotIn('Другая статья', raw[0])
+        self.assertIn('Своя вводка.', raw[0])
+        self.assertIn('Свой вывод.', raw[0])
+        self.assertEqual(selected[0]['extraction_metadata']['removed_related_widgets'], 1)
+        self.assertEqual(selected[0]['clean_version'], editorial_roles.VERSION)
+        self.assertEqual(summary['clean_version'], editorial_roles.VERSION)
+
     def test_v20_keeps_translation_gate_before_cleaner(self):
         source = '<body><h5><span class="title">Перевод:</span><span class="value">Автор</span></h5></body>'
-        with patch.object(technical_markup, 'extract', side_effect=AssertionError('translation cleaned')):
-            selected, summary, _, _, _ = self.run_build(technical_markup.VERSION, host='rsdn.org', source=source)
-        self.assertEqual(selected, [])
-        self.assertEqual(summary['primary_header_translation'], 1)
-        self.assertEqual(summary['clean_version'], technical_markup.VERSION)
+        for module in [technical_markup, editorial_roles]:
+            with self.subTest(version=module.VERSION), patch.object(module, 'extract', side_effect=AssertionError('translation cleaned')):
+                selected, summary, _, _, _ = self.run_build(module.VERSION, host='rsdn.org', source=source)
+            self.assertEqual(selected, [])
+            self.assertEqual(summary['primary_header_translation'], 1)
+            self.assertEqual(summary['clean_version'], module.VERSION)
 
     def test_v20_paused_source_never_reaches_cleaner(self):
-        with patch.object(technical_markup, 'extract', side_effect=AssertionError('paused source cleaned')):
-            selected, summary, _, _, _ = self.run_build(technical_markup.VERSION, paused=True)
-        self.assertEqual(selected, [])
-        self.assertEqual(summary.get('warc_attempts', 0), 0)
-        self.assertEqual(summary['paused_domain:xakep.ru'], 1)
+        for module in [technical_markup, editorial_roles]:
+            with self.subTest(version=module.VERSION), patch.object(module, 'extract', side_effect=AssertionError('paused source cleaned')):
+                selected, summary, _, _, _ = self.run_build(module.VERSION, paused=True)
+            self.assertEqual(selected, [])
+            self.assertEqual(summary.get('warc_attempts', 0), 0)
+            self.assertEqual(summary['paused_domain:xakep.ru'], 1)
 
 
 if __name__ == '__main__':

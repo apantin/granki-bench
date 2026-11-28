@@ -24,7 +24,9 @@ class NormGuardTest(unittest.TestCase):
             return guard.norm_problems('norms/article-blog/config.json', json.dumps(value).encode())
         valid = dict(completeness_policy='explicit-source-cut-v1', clean_version='clean-v20-technical-markup-candidate')
         self.assertEqual(check(valid), [])
+        self.assertEqual(check(valid | {'clean_version': 'clean-v21-editorial-roles-candidate'}), [])
         for value in [valid | {'completeness_policy': None}, valid | {'completeness_policy': 'future'},
+                      valid | {'clean_version': []}, valid | {'clean_version': {}},
                       valid | {'clean_version': 'clean-v3'}, {'completeness_policy': 'explicit-source-cut-v1'}]:
             self.assertTrue(check(value))
 
